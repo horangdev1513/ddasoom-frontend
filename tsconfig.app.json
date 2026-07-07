@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting — strict 필수 */
+    "strict": true,
+    /* 스캐폴딩 단계라 미사용 변수/파라미터 허용 (기능 완성 후 true로 전환 예정) */
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+
+    /* Path alias — mainpage_v2와 동일하게 @ -> src */
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
+    "types": ["node", "vite/client"]
+  },
+  "include": ["src"]
+}
