@@ -30,3 +30,24 @@ export interface ApiError {
   message: string;
   data: null;
 }
+
+
+/**
+ * 페이징 공통 응답 래퍼.
+ * 백엔드: common/dto/PageResponse.java — 전 도메인 목록 API가 이 규격으로 응답한다.
+ * 사용: ApiResponse<PageResponse<T>> 형태로 중첩된다. (노션 [페이징 공통 규격 가이드] 참고)
+ */
+export interface PageResponse<T> {
+  // 실제 목록 (응답 DTO 배열)
+  content: T[];
+  // 현재 페이지 — ⚠️ 0부터 시작(Spring 표준). UI 표시는 page + 1
+  page: number;
+  // 요청한 페이지 크기
+  size: number;
+  // 전체 건수
+  totalElements: number;
+  // 전체 페이지 수
+  totalPages: number;
+  // 다음 페이지 존재 여부 — 무한스크롤/마지막 페이지 판정은 이 필드 하나로
+  hasNext: boolean;
+}
