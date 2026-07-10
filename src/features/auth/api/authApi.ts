@@ -1,6 +1,7 @@
 import { axiosInstance } from '@/shared/api/axiosInstance';
 import type { ApiResponse } from '@/shared/types/api';
 import type { Role } from '@/shared/types/role';
+import type { AuthSessionResult } from '@/shared/api/reissue';
 
 // features/auth 도메인 API 모듈.
 // ⭐ 이 파일은 다른 팀원이 각자 도메인의 {도메인}Api.ts 를 작성할 때 따라할 "실제 동작 예시"다.
@@ -30,6 +31,12 @@ export interface SignupPayload {
   tel: string;
 }
 
+// 요청: auth/dto/request/LoginRequest.java — email, password
+export interface LoginPayload {
+  email: string;
+  password: string;
+}
+
 // 응답: auth/dto/response/SignupResponse.java — memberId(Long), email, nickname, role(Role enum)
 export interface SignupResult {
   memberId: number; // 백엔드 Long → TS number
@@ -37,6 +44,10 @@ export interface SignupResult {
   nickname: string;
   role: Role;
 }
+
+// 응답 타입은 shared/api/reissue.ts 의 AuthSessionResult 재사용
+// (백엔드가 LoginResponse.java 하나를 login/reissue 공용으로 쓰는 설계와 1:1 대응)
+export type { AuthSessionResult as LoginResult } from '@/shared/api/reissue';
 
 // ── API 함수 ────────────────────────────────────────────────────────────────
 
@@ -69,21 +80,41 @@ export async function signup(payload: SignupPayload): Promise<SignupResult> {
   return res.data.data as SignupResult;
 }
 
-// ── 미구현(백엔드 DTO 미확정) ────────────────────────────────────────────────
-// 아래 login/reissue/logout 은 백엔드 auth/dto/request/LoginRequest.java,
-// response/LoginResponse.java 가 현재 "필드 없는 빈 클래스"라 실제 타입을 확정할 수 없어 보류한다.
-// (reissue 응답의 AT 필드명, 로그인 응답의 사용자 정보 스펙 세부가 아직 미확정)
-//
-// TODO: 백엔드 LoginRequest/LoginResponse 필드 확정 후 구현
-// export async function login(payload: LoginPayload): Promise<LoginResult> {
-//   const res = await axiosInstance.post<ApiResponse<LoginResult>>('/auth/login', payload);
-//   return res.data.data as LoginResult;
-// }
-//
-// TODO: 백엔드 POST /api/auth/reissue 확정 후 구현 (single-flight 는 shared/api/reissue.ts 에서 관리)
-// export async function reissue(): Promise<{ accessToken: string; user: AuthUser }> { ... }
-//
-// TODO: 백엔드 POST /api/auth/logout 확정 후 구현 (Authorization 헤더 필수)
-// export async function logout(): Promise<void> {
-//   await axiosInstance.post<ApiResponse<null>>('/auth/logout');
-// }
+/**
+ * 일반 로그인.
+ * 백엔드: POST /api/auth/login — 실패는 전부 401 AUTH_101 (계정없음/비번틀림 구분 없음 — 페이지에서 단일 메시지 처리)
+ * 성공 시 호출부에서 authStore.setAuth(result.accessToken, toAuthUser(result)) 로 저장한다.
+ */
+export async function login(payload: LoginPayload): Promise<AuthSessionResult> {
+  const res = await axiosInstance.post<ApiResponse<AuthSessionResult>>('/auth/login', payload);
+  return res.data.data as AuthSessionResult;
+}
+
+/**
+ * 로그아웃.
+ * 백엔드: POST /api/auth/logout — Authorization 헤더 필수(요청 인터셉터가 자동 첨부).
+ * 성공 후 호출부에서 authStore.clearAuth() 실행. RT 쿠키 삭제는 서버가 수행한다.
+ */
+export async function logout(): Promise<void> {
+  await axiosInstance.post<ApiResponse<null>>('/auth/logout');
+}
+
+// ── 비밀번호 재설정 / 닉네임 중복 확인 ──────────────────────────────────────
+
+/** 재설정 메일 발송 — 이메일 존재 여부와 무관하게 항상 성공 응답(보안 설계). 실패 분기 불필요 */
+export async function requestPasswordReset(email: string): Promise<void> {
+  await axiosInstance.post<ApiResponse<null>>('/auth/password/reset-request', { email });
+}
+
+/** 토큰으로 비밀번호 재설정 — 만료/재사용 시 AUTH_108. 성공 시 로그인 페이지로 유도 */
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+  await axiosInstance.post<ApiResponse<null>>('/auth/password/reset', { token, newPassword });
+}
+
+/** 닉네임 사용 가능 여부 — true = 사용 가능. 형식 검증(zod) 통과 후에만 호출할 것 */
+export async function checkNicknameAvailable(nickname: string): Promise<boolean> {
+  const res = await axiosInstance.get<ApiResponse<boolean>>('/auth/nickname/available', {
+    params: { nickname },
+  });
+  return res.data.data === true;
+}
