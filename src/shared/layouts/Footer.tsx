@@ -31,7 +31,7 @@ const FOOTER_COLUMNS = [
 ];
 
 // 연락처는 링크가 아닌 정적 텍스트라 위 컬럼과 별도로 관리
-const CONTACT_INFO = ['02-1234-5678', 'help@ttasum.kr', '서울 마포구 합정동'];
+const CONTACT_INFO = ['02-1234-5678', 'adminlee@ddasoom.com', '서울 영등포구 문래동'];
 
 export function Footer() {
   return (
