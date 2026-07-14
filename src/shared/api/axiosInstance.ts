@@ -33,6 +33,14 @@ axiosInstance.interceptors.response.use(
     const status = error.response?.status;
     const errorCode = error.response?.data?.code;
 
+    // 403은 재시도로 풀리지 않는 최종 상태 — 재발급 흐름을 타지 않고 즉시 안내 화면으로.
+    // shouldReissue 판별보다 먼저 처리해도 무방(401이 아니므로 그 분기와 겹치지 않음).
+    //window.location.href를 쓴 이유 — 인터셉터는 React 컴포넌트 트리 바깥이라 useNavigate를 못 씁니다. 인증 관련 강제 이동에서 흔히 쓰는 방식입니다.
+    if (status === 403) {
+      window.location.href = '/forbidden';
+      return Promise.reject(error);
+    }
+
     const shouldReissue =
       status === 401 &&
       !originalRequest._retry &&

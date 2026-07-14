@@ -7,6 +7,7 @@ import { RequireAdmin } from '@/shared/components/common/RequireAdmin';
 
 import { MainPage } from '@/pages/MainPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+import { ForbiddenPage } from '@/pages/ForbiddenPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { OAuthCallbackPage } from '@/pages/auth/OAuthCallbackPage';
 import { SocialSignupPage } from '@/pages/auth/SocialSignupPage';
@@ -69,6 +70,7 @@ export const router = createBrowserRouter([
         ],
       },
       { path: '*', element: <NotFoundPage /> },
+      { path: 'forbidden', element: <ForbiddenPage /> }, // 403 리다이렉트
     ],
   },
   // 관리자 로그인은 공개(가드/AdminLayout 밖)
