@@ -31,7 +31,6 @@ export interface ApiError {
   data: null;
 }
 
-
 /**
  * 페이징 공통 응답 래퍼.
  * 백엔드: common/dto/PageResponse.java — 전 도메인 목록 API가 이 규격으로 응답한다.
@@ -50,4 +49,6 @@ export interface PageResponse<T> {
   totalPages: number;
   // 다음 페이지 존재 여부 — 무한스크롤/마지막 페이지 판정은 이 필드 하나로
   hasNext: boolean;
+  // 이전 페이지 존재 여부
+  hasPrevius: boolean;
 }
