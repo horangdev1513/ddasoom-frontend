@@ -50,5 +50,5 @@ export interface PageResponse<T> {
   // 다음 페이지 존재 여부 — 무한스크롤/마지막 페이지 판정은 이 필드 하나로
   hasNext: boolean;
   // 이전 페이지 존재 여부
-  hasPrevius: boolean;
+  hasPrevious: boolean;
 }
