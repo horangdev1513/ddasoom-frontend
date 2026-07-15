@@ -41,8 +41,8 @@ const NAV_MENUS = [
     label: '고객센터',
     items: [
       { label: '공지사항', to: '/support/notices' },
-      { label: 'FAQ', to: '/support/faq' },
-      { label: '1:1 문의', to: '/support/qna' },
+      { label: 'FAQ', to: '/support/faqs' },
+      { label: '1:1 문의', to: '/support/qnas' },
     ],
   },
   {

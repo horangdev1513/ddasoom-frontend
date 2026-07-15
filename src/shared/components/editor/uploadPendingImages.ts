@@ -1,5 +1,5 @@
 import type { Editor } from '@tiptap/react';
-import { uploadImage } from './editorImageApi';
+import { uploadImage, ImageUploadError } from './editorImageApi';
 import { pendingImageDb } from './pendingImageDb';
 import type { OwnerType } from './editorConstants';
 
@@ -49,9 +49,13 @@ export async function uploadPendingImages(editor: Editor, ownerType: OwnerType):
   }
 
   if (failure) {
+    // 서버 에러코드(ImageUploadError.code)를 뭉개지 않고 보존해 상위(토스트)가 문구 매핑에 쓰게 한다.
+    // wrapper 메시지에는 실패 순번(N번째)을 남긴다.
+    const code = failure.cause instanceof ImageUploadError ? failure.cause.code : undefined;
     const error = new Error(`이미지 ${failure.index}번째 업로드 실패, 다시 저장을 시도해주세요`);
-    (error as Error & { cause?: unknown; failedAt?: number }).cause = failure.cause;
+    (error as Error & { cause?: unknown; failedAt?: number; code?: string }).cause = failure.cause;
     (error as Error & { failedAt?: number }).failedAt = failure.index;
+    (error as Error & { code?: string }).code = code;
     throw error;
   }
 

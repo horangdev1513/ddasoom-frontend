@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { axiosInstance } from '@/shared/api/axiosInstance';
 import type { ApiResponse } from '@/shared/types/api';
-import type { OwnerType } from './editorConstants';
+import { MAX_IMAGES, type OwnerType } from './editorConstants';
 
 // 에디터 이미지 업로드 API 모듈.
 // 백엔드: POST /api/images (multipart) — public MinIO 버킷에 저장, 영구 정적 URL 반환.
@@ -23,6 +23,25 @@ export class ImageUploadError extends Error {
     this.name = 'ImageUploadError';
     this.code = code;
   }
+}
+
+// 서버 이미지 에러코드 → 사용자 안내 문구 매핑(단일 소스).
+// 백엔드 ImageErrorCode와 동기화 — 코드/문구 추가·변경 시 백엔드와 함께 갱신할 것.
+//  IMAGE_003의 장수는 MAX_IMAGES(editorConstants)와 항상 일치하도록 상수를 참조한다.
+export const IMAGE_ERROR_MESSAGES: Record<string, string> = {
+  IMAGE_001: '지원하지 않는 형식입니다. jpg, png, gif, webp만 가능합니다.',
+  IMAGE_002: '이미지 용량은 10MB 이하만 가능합니다.',
+  IMAGE_003: `이미지는 최대 ${MAX_IMAGES}장까지 첨부할 수 있습니다.`,
+  IMAGE_004: '이미지를 찾을 수 없습니다. 다시 시도해주세요.',
+  IMAGE_006: '이미지 소유자가 일치하지 않습니다.',
+};
+
+// 미매핑/미상 코드가 수렴하는 기본 문구.
+export const DEFAULT_IMAGE_ERROR_MESSAGE = '이미지 업로드에 실패했습니다. 다시 시도해주세요.';
+
+// 에러코드를 사용자 안내 문구로 변환한다. code가 없거나 매핑에 없으면 기본 문구.
+export function getImageErrorMessage(code?: string): string {
+  return (code && IMAGE_ERROR_MESSAGES[code]) || DEFAULT_IMAGE_ERROR_MESSAGE;
 }
 
 /**

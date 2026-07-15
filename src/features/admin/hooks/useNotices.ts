@@ -8,6 +8,7 @@ import {
   updateNotice,
   changeNoticeVisibility,
   deleteNotice,
+  reorderPinnedNotices,
   type NoticeCreatePayload,
   type NoticeUpdatePayload,
 } from '@/features/admin/api/noticeApi';
@@ -71,6 +72,20 @@ export function useDeleteNotice() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.notices() });
       toast.success('공지사항이 삭제되었습니다.');
+    },
+  });
+}
+
+export function useReorderPinnedNotices() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (noticeIds: number[]) => reorderPinnedNotices(noticeIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.notices() });
+      toast.success('고정 설정이 변경되었습니다.');
+    },
+    onError: () => {
+      toast.error('고정 설정 변경에 실패했습니다.');
     },
   });
 }

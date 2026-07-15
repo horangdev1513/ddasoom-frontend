@@ -1,7 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useAdminNotices, useChangeNoticeVisibility, useDeleteNotice } from '@/features/admin/hooks/useNotices';
+import { ChevronUp, ChevronDown } from 'lucide-react';
+import {
+  useAdminNotices,
+  useChangeNoticeVisibility,
+  useDeleteNotice,
+  useReorderPinnedNotices,
+} from '@/features/admin/hooks/useNotices';
 import {
   Table,
   TableBody,
@@ -32,6 +38,7 @@ export function AdminNoticeListPage() {
   const { data, isLoading, isError } = useAdminNotices({ page, size: 10 });
   const changeVisibility = useChangeNoticeVisibility();
   const deleteNotice = useDeleteNotice();
+  const reorderPinned = useReorderPinnedNotices();
 
   const handleDelete = () => {
     if (deleteTargetId == null) return;
@@ -48,6 +55,27 @@ export function AdminNoticeListPage() {
   }
 
   const notices = data?.content ?? [];
+
+  // 고정 집합 전체를 재구성해 PATCH(전체 덮어쓰기)한다 — 항상 "고정되어야 할 전체 ID 배열"을 보낸다.
+  // 참고: 목록 응답(NoticeSummaryResponse)에 pin_order가 없어, 백엔드가 고정글을 pin_order 순으로
+  // 상단 정렬해 내려준다는 전제 하에 목록 등장 순서로 고정 순서를 구성한다.
+  // 한계: 고정글이 여러 페이지에 걸치는 케이스는 데모 범위 밖 — 현재 페이지 기준으로만 처리한다.
+  const pinnedIds = notices.filter((n) => n.isPinned).map((n) => n.noticeId);
+
+  const handlePin = (noticeId: number) => {
+    reorderPinned.mutate([...pinnedIds, noticeId]);
+  };
+  const handleUnpin = (noticeId: number) => {
+    reorderPinned.mutate(pinnedIds.filter((id) => id !== noticeId));
+  };
+  const handleMovePin = (noticeId: number, dir: -1 | 1) => {
+    const i = pinnedIds.indexOf(noticeId);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= pinnedIds.length) return;
+    const next = [...pinnedIds];
+    [next[i], next[j]] = [next[j], next[i]];
+    reorderPinned.mutate(next);
+  };
 
   return (
     <div className="p-6">
@@ -84,8 +112,50 @@ export function AdminNoticeListPage() {
                 >
                   <TableCell>{notice.noticeId}</TableCell>
                   <TableCell className="font-medium">{notice.title}</TableCell>
-                  <TableCell>
-                    {notice.isPinned && <Badge variant="secondary">고정</Badge>}
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    {notice.isPinned ? (
+                      <div className="flex items-center gap-1">
+                        <Badge variant="secondary">📌 {pinnedIds.indexOf(notice.noticeId) + 1}</Badge>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-7"
+                          disabled={reorderPinned.isPending || pinnedIds.indexOf(notice.noticeId) === 0}
+                          onClick={() => handleMovePin(notice.noticeId, -1)}
+                        >
+                          <ChevronUp className="size-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-7"
+                          disabled={
+                            reorderPinned.isPending ||
+                            pinnedIds.indexOf(notice.noticeId) === pinnedIds.length - 1
+                          }
+                          onClick={() => handleMovePin(notice.noticeId, 1)}
+                        >
+                          <ChevronDown className="size-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={reorderPinned.isPending}
+                          onClick={() => handleUnpin(notice.noticeId)}
+                        >
+                          고정 해제
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={reorderPinned.isPending}
+                        onClick={() => handlePin(notice.noticeId)}
+                      >
+                        고정
+                      </Button>
+                    )}
                   </TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     <Switch

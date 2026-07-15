@@ -83,3 +83,12 @@ export async function changeNoticeVisibility(noticeId: number, isVisible: boolea
 export async function deleteNotice(noticeId: number): Promise<void> {
   await axiosInstance.delete<ApiResponse<null>>(`/admin/notices/${noticeId}`);
 }
+
+/**
+ * 고정 공지 순서 일괄 설정 — PATCH /api/admin/notices/pin-order
+ * ⚠️ 전체 덮어쓰기: 보낸 배열 순서대로 pin_order=1,2,3… 부여, 배열에 없는 기존 고정글은
+ * pin_order=NULL로 자동 해제됨. 따라서 항상 "고정되어야 할 전체 ID 배열"을 보내야 한다.
+ */
+export async function reorderPinnedNotices(noticeIds: number[]): Promise<void> {
+  await axiosInstance.patch<ApiResponse<null>>('/admin/notices/pin-order', { noticeIds });
+}

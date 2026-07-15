@@ -28,8 +28,14 @@ import { AdminLoginPage } from '@/pages/admin/AdminLoginPage';
 import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage';
 import { AdminNoticeListPage } from '@/pages/admin/AdminNoticeListPage';
 import { AdminNoticeFormPage } from '@/pages/admin/AdminNoticeFormPage';
+import { AdminFaqListPage } from '@/pages/admin/AdminFaqListPage';
+import { AdminFaqFormPage } from '@/pages/admin/AdminFaqFormPage';
 import { AboutPage } from '@/pages/about/AboutPage';
 import { GuidePage } from '@/pages/about/GuidePage';
+import { NoticeListPage } from '@/pages/support/NoticeListPage';
+import { NoticeDetailPage } from '@/pages/support/NoticeDetailPage';
+import { FaqListPage } from '@/pages/support/FaqListPage';
+import { FaqDetailPage } from '@/pages/support/FaqDetailPage';
 
 // 전체 라우트 정의(단일 파일에서 관리). 역할별 라우트를 한곳에 모아 등록한다.
 // 현재는 경로 등록 + placeholder 페이지 연결까지만. 각 페이지 실제 구현은 도메인 담당자 몫.
@@ -53,6 +59,10 @@ export const router = createBrowserRouter([
       { path: 'animals', element: <AnimalListPage /> },
       { path: 'animals/:id', element: <AnimalDetailPage /> },
       { path: 'board/:boardType', element: <BoardListPage /> }, // /board/info, /board/review
+      { path: 'support/notices', element: <NoticeListPage /> }, // 공지사항 목록 (공개)
+      { path: 'support/notices/:noticeId', element: <NoticeDetailPage /> }, // 공지사항 상세 (공개)
+      { path: 'support/faqs', element: <FaqListPage /> }, // FAQ 목록 (공개)
+      { path: 'support/faqs/:faqId', element: <FaqDetailPage /> }, // FAQ 상세 (공개)
       {
         // USER 전용 가드
         element: <RequireAuth />,
@@ -85,10 +95,23 @@ export const router = createBrowserRouter([
       {
         element: <AdminLayout />,
         children: [
-          { index: true, element: <AdminDashboardPage /> }, // /admin
+          { index: true, element: <AdminDashboardPage /> }, // /대시보드
+          // ===== 공지사항 (이서진) =======
           { path: 'notices', element: <AdminNoticeListPage /> },
           { path: 'notices/new', element: <AdminNoticeFormPage /> },
           { path: 'notices/:noticeId/edit', element: <AdminNoticeFormPage /> },
+          // ===== FAQ (이서진) =======
+          { path: 'faqs', element: <AdminFaqListPage /> },
+          { path: 'faqs/new', element: <AdminFaqFormPage /> },
+          { path: 'faqs/:faqId/edit', element: <AdminFaqFormPage /> },
+          // ===== QNA (이서진) =======
+
+          // ===== 유저 관리 (구지훈) =======
+
+          // ===== 임시보호 신청 관리 (김경우) =======
+          
+          // ===== 게시글 관리 (유창호) =======
+
           { path: '*', element: <AdminDashboardPage /> }, // /admin/** (관리 서브페이지 자리)
         ],
       },

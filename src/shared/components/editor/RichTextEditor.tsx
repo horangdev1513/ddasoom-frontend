@@ -7,6 +7,7 @@ import { cn } from '@/shared/components/ui/utils';
 import { DeferredImage } from './DeferredImage';
 import { EditorToolbar } from './EditorToolbar';
 import { extractImageIds } from './extractImageIds';
+import { getImageErrorMessage } from './editorImageApi';
 import { uploadPendingImages } from './uploadPendingImages';
 import { useDeferredImageUpload } from './useDeferredImageUpload';
 import { pendingImageDb } from './pendingImageDb';
@@ -89,7 +90,8 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
           try {
             await uploadPendingImages(editor, ownerType);
           } catch (err) {
-            toast.error(err instanceof Error ? err.message : '이미지 업로드에 실패했습니다');
+            // 서버 에러코드(uploadPendingImages가 보존한 .code) → 사용자 안내 문구로 매핑해 노출.
+            toast.error(getImageErrorMessage((err as { code?: string })?.code));
             throw err;
           }
           const html = editor.getHTML();
