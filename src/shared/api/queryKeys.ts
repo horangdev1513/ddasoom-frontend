@@ -25,6 +25,29 @@ export const queryKeys = {
   foster: {},
   // features/mypage — 마이페이지
   mypage: {},
-  // features/admin — 관리자(프론트 총괄)
-  admin: {},
+  // features/admin — 공지사항, Faq, Qna, 관리자페이지
+  admin: {
+    all: ['admin'] as const,
+    // ===== 이서진 (공지사항) =======
+    notices: () => [...queryKeys.admin.all, 'notices'] as const,
+    noticeList: (params: { page?: number; size?: number }) =>
+      [...queryKeys.admin.notices(), 'list', params] as const,
+    noticeDetail: (id: number) =>
+      [...queryKeys.admin.notices(), 'detail', id] as const,
+
+    // ===== 구지훈 (유저 관리) =======
+    // ===== 김경우 (임시보호 신청 관리) =======
+    // ===== 유창호 (게시글 관리) =======
+  },
+
+
+  // features/support — 유저용 공지/FAQ/QnA 열람
+  support: {
+    all: ['support'] as const,
+    notices: () => [...queryKeys.support.all, 'notices'] as const,
+    noticeList: (params: { page?: number; size?: number }) =>
+      [...queryKeys.support.notices(), 'list', params] as const,
+    noticeDetail: (id: number) =>
+      [...queryKeys.support.notices(), 'detail', id] as const,
+  },
 } as const;

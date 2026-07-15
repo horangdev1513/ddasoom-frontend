@@ -26,6 +26,8 @@ import { MyPostsTab } from '@/pages/mypage/MyPostsTab';
 import { MyCommentsTab } from '@/pages/mypage/MyCommentsTab';
 import { AdminLoginPage } from '@/pages/admin/AdminLoginPage';
 import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage';
+import { AdminNoticeListPage } from '@/pages/admin/AdminNoticeListPage';
+import { AdminNoticeFormPage } from '@/pages/admin/AdminNoticeFormPage';
 import { AboutPage } from '@/pages/about/AboutPage';
 import { GuidePage } from '@/pages/about/GuidePage';
 
@@ -84,6 +86,9 @@ export const router = createBrowserRouter([
         element: <AdminLayout />,
         children: [
           { index: true, element: <AdminDashboardPage /> }, // /admin
+          { path: 'notices', element: <AdminNoticeListPage /> },
+          { path: 'notices/new', element: <AdminNoticeFormPage /> },
+          { path: 'notices/:noticeId/edit', element: <AdminNoticeFormPage /> },
           { path: '*', element: <AdminDashboardPage /> }, // /admin/** (관리 서브페이지 자리)
         ],
       },
