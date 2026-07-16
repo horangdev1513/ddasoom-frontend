@@ -1,10 +1,13 @@
+import { Link } from 'react-router-dom';
 import { MessageCircle, Eye, ImageIcon } from 'lucide-react';
 import type { PostListItem } from '@/features/board/types';
 
 // 게시판 리스트 카드 1건. 메인용 ContentPreviewSection과 용도 분리(그 컴포넌트는 수정 금지).
-// TODO: 상세 페이지 라우트 확정 후 카드 클릭 → /board/{slug}/{postId} 이동 연결.
+// 카드 클릭 → /board/{slug}/{postId} 상세 이동.
+// slug를 prop으로 받는 이유: 카드가 현재 라우트 구조에 암묵 의존하지 않도록(마이페이지 "내 글" 등 재사용 대비).
 interface PostCardProps {
   post: PostListItem;
+  slug: string;
 }
 
 // LocalDateTime(타임존 없음) → "2026.07.01" 표시용. (11개 확인항목 중 datetime timezone 이슈는 표시엔 무해)
@@ -13,9 +16,12 @@ function formatDate(iso: string): string {
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
 }
 
-export function PostCard({ post }: PostCardProps) {
+export function PostCard({ post, slug }: PostCardProps) {
   return (
-    <div className='overflow-hidden rounded-2xl border border-border bg-white transition-all duration-300 hover:-translate-y-1 hover:border-primary hover:shadow-[0_12px_32px_rgba(244,185,66,0.16)]'>
+    <Link
+      to={`/board/${slug}/${post.postId}`}
+      className='block overflow-hidden rounded-2xl border border-border bg-white transition-all duration-300 hover:-translate-y-1 hover:border-primary hover:shadow-[0_12px_32px_rgba(244,185,66,0.16)]'
+    >
       <div className='h-48 overflow-hidden bg-secondary'>
         {post.thumbnailUrl ? (
           <img
@@ -62,6 +68,6 @@ export function PostCard({ post }: PostCardProps) {
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
