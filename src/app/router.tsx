@@ -38,6 +38,7 @@ import { NoticeListPage } from '@/pages/support/NoticeListPage';
 import { NoticeDetailPage } from '@/pages/support/NoticeDetailPage';
 import { FaqListPage } from '@/pages/support/FaqListPage';
 import { FaqDetailPage } from '@/pages/support/FaqDetailPage';
+import { ReviewWritePage } from '@/pages/board/ReviewWritePage';
 
 // 전체 라우트 정의(단일 파일에서 관리). 역할별 라우트를 한곳에 모아 등록한다.
 // 현재는 경로 등록 + placeholder 페이지 연결까지만. 각 페이지 실제 구현은 도메인 담당자 몫.
@@ -51,8 +52,8 @@ export const router = createBrowserRouter([
       { path: 'signup', element: <SignupPage /> },
       { path: 'about', element: <AboutPage /> },
       { path: 'guide', element: <GuidePage /> },
-      { path: 'oauth/callback', element: <OAuthCallbackPage /> },   // 소셜 로그인 착지 (백엔드 SuccessHandler 리다이렉트 대상)
-      { path: 'reset-password', element: <ResetPasswordPage /> },   // 비밀번호 재설정 메일 링크 착지
+      { path: 'oauth/callback', element: <OAuthCallbackPage /> }, // 소셜 로그인 착지 (백엔드 SuccessHandler 리다이렉트 대상)
+      { path: 'reset-password', element: <ResetPasswordPage /> }, // 비밀번호 재설정 메일 링크 착지
       {
         // GUEST 전용 — 소셜 가입 추가정보
         element: <RequireGuest />,
@@ -74,13 +75,14 @@ export const router = createBrowserRouter([
             path: 'mypage',
             element: <MyPageLayout />,
             children: [
-              { index: true, element: <ProfileTab /> },          // /mypage = 내 정보
+              { index: true, element: <ProfileTab /> }, // /mypage = 내 정보
               { path: 'likes', element: <LikedAnimalsTab /> },
               { path: 'fosters', element: <FosterHistoryTab /> },
               { path: 'posts', element: <MyPostsTab /> },
               { path: 'comments', element: <MyCommentsTab /> },
             ],
           },
+          { path: 'board/review/write', element: <ReviewWritePage /> },
         ],
       },
       { path: '*', element: <NotFoundPage /> },
@@ -113,7 +115,7 @@ export const router = createBrowserRouter([
           { path: 'members/:memberId', element: <AdminMemberDetailPage /> },
 
           // ===== 임시보호 신청 관리 (김경우) =======
-          
+
           // ===== 게시글 관리 (유창호) =======
 
           { path: '*', element: <AdminDashboardPage /> }, // /admin/** (관리 서브페이지 자리)

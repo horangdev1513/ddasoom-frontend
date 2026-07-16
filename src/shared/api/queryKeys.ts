@@ -14,13 +14,21 @@
 //     detail: (id) => [...queryKeys.animals.details(), id] as const,
 //   }
 
+import { PostListParams } from '@/features/board/types';
+
 export const queryKeys = {
   // features/auth
   auth: {},
   // features/animals — 유기동물
   animals: {},
   // features/board — 정보교환/입양후기 통합(boardType 파라미터로 분기)
-  board: {},
+  // features/board — 정보교환/입양후기 통합(boardType 파라미터로 분기)
+  board: {
+    all: ['board'] as const,
+    lists: () => [...queryKeys.board.all, 'list'] as const,
+    list: (params: PostListParams) =>
+      [...queryKeys.board.lists(), params] as const,
+  },
   // features/foster — 임시보호
   foster: {},
   // features/mypage — 마이페이지

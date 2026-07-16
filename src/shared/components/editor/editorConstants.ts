@@ -6,7 +6,12 @@
 export const MAX_IMAGES = 20;
 
 // 허용 이미지 MIME 타입 — <input accept>와 삽입 전 1차 검증에 공용.
-export const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'] as const;
+export const ACCEPTED_IMAGE_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+] as const;
 
 // <input accept> 속성 값.
 export const ACCEPT_ATTR = ACCEPTED_IMAGE_TYPES.join(',');
@@ -16,7 +21,7 @@ export const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
 
 // 이미지 소유 도메인 타입. 백엔드 OwnerType enum과 대응한다.
 // 공지는 'NOTICE', FAQ 화면은 'FAQ'를 RichTextEditor의 ownerType prop으로 주입한다.
-export type OwnerType = 'NOTICE' | 'FAQ';
+export type OwnerType = 'NOTICE' | 'FAQ' | 'POST';
 
 // 이미지 업로드 API의 ownerType 기본값.
 // 백엔드 OwnerType enum에 NOTICE는 존재(public), FAQ는 추가 예정.
