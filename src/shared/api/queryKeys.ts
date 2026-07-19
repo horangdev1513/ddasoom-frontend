@@ -79,6 +79,25 @@ export const queryKeys = {
       [...queryKeys.admin.faqs(), "detail", id] as const,
     faqCategories: () => [...queryKeys.admin.all, "faqCategories"] as const,
     // ===== QNA (이서진) =======
+    // 상태 필터(status)가 목록 키의 일부 — 전체/PENDING/ANSWERED 탭이 각각 독립 캐시를 갖는다.
+    qnas: () => [...queryKeys.admin.all, "qnas"] as const,
+    qnaList: (params: { status?: string; page?: number; size?: number }) =>
+      [...queryKeys.admin.qnas(), "list", params] as const,
+    qnaDetail: (id: number) =>
+      [...queryKeys.admin.qnas(), "detail", id] as const,
+
+    // ===== 신고 관리 (이서진) =======
+    // status/targetType 필터가 목록 키의 일부 — 필터 조합마다 독립 캐시를 갖는다.
+    // 승인/반려는 상세와 목록이 함께 바뀌므로 reports() 루트로 한 번에 무효화한다.
+    reports: () => [...queryKeys.admin.all, "reports"] as const,
+    reportList: (params: {
+      status?: string;
+      targetType?: string;
+      page?: number;
+      size?: number;
+    }) => [...queryKeys.admin.reports(), "list", params] as const,
+    reportDetail: (id: number) =>
+      [...queryKeys.admin.reports(), "detail", id] as const,
 
     // ===== 구지훈 (유저 관리) =======
     members: () => [...queryKeys.admin.all, "members"] as const,
@@ -94,6 +113,17 @@ export const queryKeys = {
       [...queryKeys.admin.members(), "loginLogs", id, page] as const,
     // ===== 김경우 (임시보호 신청 관리) =======
     // ===== 유창호 (게시글 관리) =======
+  },
+
+  // features/qna — 유저용 1:1 문의 (이서진)
+  // 관리자 QnA(admin.qnas)와는 별도 엔드포인트(/api/qnas)라 캐시도 분리한다.
+  qna: {
+    all: ["qna"] as const,
+    lists: () => [...queryKeys.qna.all, "list"] as const,
+    list: (params: { page?: number; size?: number }) =>
+      [...queryKeys.qna.lists(), params] as const,
+    details: () => [...queryKeys.qna.all, "detail"] as const,
+    detail: (qnaId: number) => [...queryKeys.qna.details(), qnaId] as const,
   },
 
   // features/support — 유저용 공지/FAQ/QnA 열람

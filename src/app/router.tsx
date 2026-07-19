@@ -32,6 +32,13 @@ import { AdminMemberListPage } from '@/pages/admin/AdminMemberListPage';
 import { AdminMemberDetailPage } from '@/pages/admin/AdminMemberDetailPage';
 import { AdminFaqListPage } from '@/pages/admin/AdminFaqListPage';
 import { AdminFaqFormPage } from '@/pages/admin/AdminFaqFormPage';
+import { AdminQnaListPage } from '@/pages/admin/AdminQnaListPage';
+import { AdminQnaDetailPage } from '@/pages/admin/AdminQnaDetailPage';
+import { AdminReportListPage } from '@/pages/admin/AdminReportListPage';
+import { AdminReportDetailPage } from '@/pages/admin/AdminReportDetailPage';
+import { QnaListPage } from '@/pages/qna/QnaListPage';
+import { QnaWritePage } from '@/pages/qna/QnaWritePage';
+import { QnaDetailPage } from '@/pages/qna/QnaDetailPage';
 import { AboutPage } from '@/pages/about/AboutPage';
 import { GuidePage } from '@/pages/about/GuidePage';
 import { NoticeListPage } from '@/pages/support/NoticeListPage';
@@ -85,6 +92,12 @@ export const router = createBrowserRouter([
             ],
           },
           { path: 'board/review/write', element: <ReviewWritePage /> },
+          // ===== QNA — 1:1 문의 (이서진) =======
+          // 공지/FAQ와 같은 support/ 하위 경로(헤더·푸터 '고객센터' 메뉴와 정합).
+          // 단, 공지/FAQ와 달리 로그인 필수라 RequireAuth 안에 둔다.
+          { path: 'support/qnas', element: <QnaListPage /> },
+          { path: 'support/qnas/new', element: <QnaWritePage /> },
+          { path: 'support/qnas/:qnaId', element: <QnaDetailPage /> },
         ],
       },
       { path: '*', element: <NotFoundPage /> },
@@ -111,6 +124,11 @@ export const router = createBrowserRouter([
           { path: 'faqs/new', element: <AdminFaqFormPage /> },
           { path: 'faqs/:faqId/edit', element: <AdminFaqFormPage /> },
           // ===== QNA (이서진) =======
+          { path: 'qnas', element: <AdminQnaListPage /> },
+          { path: 'qnas/:qnaId', element: <AdminQnaDetailPage /> },
+          // ===== 신고 관리 (이서진) =======
+          { path: 'reports', element: <AdminReportListPage /> },
+          { path: 'reports/:reportId', element: <AdminReportDetailPage /> },
 
           // ===== 유저 관리 (구지훈) =======
           { path: 'members', element: <AdminMemberListPage /> },
