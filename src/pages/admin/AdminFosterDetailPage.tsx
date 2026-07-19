@@ -1,9 +1,21 @@
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, HandHeart, PawPrint } from 'lucide-react';
 import { useAdminFosterDetail } from '@/features/foster/hooks/useAdminFosterDetail';
+import { useDeleteAdminFoster } from '@/features/foster/hooks/useDeleteAdminFoster';
 import { FosterStatusBadge } from '@/features/foster/components/FosterStatusBadge';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/shared/components/ui/alert-dialog';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 
 function formatDateTime(iso: string): string {
@@ -42,11 +54,26 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 }
 
 export function AdminFosterDetailPage() {
+  const navigate = useNavigate();
   const { fosterId: fosterIdParam } = useParams();
   const fosterId = Number(fosterIdParam);
   const validFosterId = Number.isSafeInteger(fosterId) && fosterId > 0 ? fosterId : null;
 
   const { data, isLoading, isError } = useAdminFosterDetail(validFosterId);
+  const deleteFosterMutation = useDeleteAdminFoster();
+
+  const handleDelete = () => {
+    if (!validFosterId) return;
+
+    deleteFosterMutation.mutate(validFosterId, {
+      onSuccess: () => {
+        navigate('/admin/fosters', { replace: true });
+      },
+      onError: (error) => {
+        console.error('임시보호 신청 삭제 실패:', error);
+      },
+    });
+  };
 
   if (validFosterId == null) {
     return (
@@ -105,17 +132,47 @@ export function AdminFosterDetailPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {!data.deletedAt && (
-            <Button asChild variant="outline" size="sm">
-              <Link to={`/admin/fosters/${data.fosterId}/edit`}>수정</Link>
-            </Button>
+            <>
+              <Button asChild variant="outline" size="sm">
+                <Link to={`/admin/fosters/${data.fosterId}/edit`}>수정</Link>
+              </Button>
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm">
+                    삭제
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>임시보호 신청을 삭제할까요?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      삭제한 신청은 관리자 목록에서 삭제된 신청 포함 옵션을 켰을 때만 조회할 수
+                      있습니다.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel disabled={deleteFosterMutation.isPending}>
+                      취소
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDelete}
+                      disabled={deleteFosterMutation.isPending}
+                    >
+                      {deleteFosterMutation.isPending ? '삭제 중...' : '삭제'}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </>
           )}
+
           <FosterStatusBadge status={data.status} />
           {data.deletedAt && <Badge variant="destructive">삭제됨</Badge>}
         </div>
       </div>
-      
 
       <section className="border-y bg-white px-5 py-6">
         <h2 className="text-lg font-semibold">신청 동물</h2>

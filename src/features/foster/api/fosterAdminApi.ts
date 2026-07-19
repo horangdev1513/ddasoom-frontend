@@ -44,3 +44,7 @@ export async function updateAdminFoster(
     payload,
   );
 }
+
+export async function deleteAdminFoster(fosterId: number): Promise<void> {
+  await axiosInstance.delete<ApiResponse<null>>(`/admin/fosters/${fosterId}`);
+}
