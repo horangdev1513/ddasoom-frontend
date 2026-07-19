@@ -102,3 +102,11 @@ export interface FosterAdminDetail {
   updatedAt: string;
   deletedAt: string | null;
 }
+export interface FosterAdminUpdatePayload {
+  answer: string;
+  status: FosterStatus;
+  fosterStartAt: string | null;
+  fosterEndAt: string | null;
+  fosterExtendAt: string | null;
+  fosterCompleteAt: string | null;
+}

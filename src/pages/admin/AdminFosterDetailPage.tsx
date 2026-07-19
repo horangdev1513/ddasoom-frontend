@@ -106,10 +106,16 @@ export function AdminFosterDetailPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          {!data.deletedAt && (
+            <Button asChild variant="outline" size="sm">
+              <Link to={`/admin/fosters/${data.fosterId}/edit`}>수정</Link>
+            </Button>
+          )}
           <FosterStatusBadge status={data.status} />
           {data.deletedAt && <Badge variant="destructive">삭제됨</Badge>}
         </div>
       </div>
+      
 
       <section className="border-y bg-white px-5 py-6">
         <h2 className="text-lg font-semibold">신청 동물</h2>

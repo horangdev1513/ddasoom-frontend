@@ -4,6 +4,7 @@ import type {
   FosterAdminDetail,
   FosterAdminListItem,
   FosterAdminListParams,
+  FosterAdminUpdatePayload,
 } from '@/features/foster/types';
 
 export async function getAdminFosters(
@@ -32,4 +33,14 @@ export async function getAdminFosterDetail(
   );
 
   return res.data.data as FosterAdminDetail;
+}
+
+export async function updateAdminFoster(
+  fosterId: number,
+  payload: FosterAdminUpdatePayload,
+): Promise<void> {
+  await axiosInstance.patch<ApiResponse<null>>(
+    `/admin/fosters/${fosterId}`,
+    payload,
+  );
 }
