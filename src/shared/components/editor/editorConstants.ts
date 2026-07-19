@@ -21,7 +21,8 @@ export const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
 
 // 이미지 소유 도메인 타입. 백엔드 OwnerType enum과 대응한다.
 // 공지는 'NOTICE', FAQ 화면은 'FAQ'를 RichTextEditor의 ownerType prop으로 주입한다.
-export type OwnerType = 'NOTICE' | 'FAQ' | 'POST';
+// QNA/QNA_COMMENT는 에디터가 아니라 첨부형 업로드(ImageAttachInput)에서 사용한다.
+export type OwnerType = 'NOTICE' | 'FAQ' | 'POST' | 'QNA' | 'QNA_COMMENT';
 
 // 이미지 업로드 API의 ownerType 기본값.
 // 백엔드 OwnerType enum에 NOTICE는 존재(public), FAQ는 추가 예정.

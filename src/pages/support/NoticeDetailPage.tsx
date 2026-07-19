@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useNotice } from '@/features/support/hooks/useNotices';
+import { SafeHtmlViewer } from '@/shared/components/editor';
 import { Button } from '@/shared/components/ui/button';
 
 export function NoticeDetailPage() {
@@ -31,9 +32,8 @@ export function NoticeDetailPage() {
       <h1 className="mb-2 text-2xl font-semibold">{data.title}</h1>
       <p className="mb-6 text-sm text-muted-foreground">{data.createdAt.slice(0, 10)}</p>
 
-      <div className="min-h-40 whitespace-pre-wrap border-t pt-6 leading-relaxed">
-        {data.content}
-      </div>
+      {/* content는 HTML 문자열 — SafeHtmlViewer가 sanitize + data-image-id 허용 후 렌더 */}
+      <SafeHtmlViewer html={data.content} className="min-h-40 border-t pt-6" />
 
       <div className="mt-8 flex justify-center">
         <Button variant="outline" onClick={() => navigate('/support/notices')}>

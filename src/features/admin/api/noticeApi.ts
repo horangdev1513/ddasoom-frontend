@@ -29,15 +29,19 @@ export interface NoticeDetail {
 }
 
 // 요청: support/dto/request/NoticeCreateRequest.java
+// content는 HTML 문자열, imageIds는 본문 등장 순서(image_order) — 백엔드가 attach에 사용.
 export interface NoticeCreatePayload {
   title: string;
   content: string;
+  imageIds: number[];
 }
 
 // 요청: support/dto/request/NoticeUpdateRequest.java
+// imageIds는 본문 전체 기준 최종 리스트 — 백엔드가 syncImages로 diff 처리.
 export interface NoticeUpdatePayload {
   title: string;
   content: string;
+  imageIds: number[];
 }
 
 // ── API 함수 ────────────────────────────────────────────────────────────
