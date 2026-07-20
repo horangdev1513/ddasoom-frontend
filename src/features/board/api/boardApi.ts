@@ -6,6 +6,7 @@ import type {
   PostDetail,
   PostListItem,
   PostListParams,
+  PostUpdatePayload,
 } from '../types';
 
 // features/board 도메인 API 모듈. 작성 방식은 features/auth/api/authApi.ts 참고.
@@ -96,4 +97,11 @@ export async function deleteComment(
   await axiosInstance.delete<ApiResponse<void>>(
     `/posts/${postId}/comments/${commentId}`,
   );
+}
+
+export async function updatePost(
+  postId: number,
+  payload: PostUpdatePayload,
+): Promise<void> {
+  await axiosInstance.patch<ApiResponse<void>>(`/posts/${postId}`, payload);
 }
