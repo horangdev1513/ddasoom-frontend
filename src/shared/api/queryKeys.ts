@@ -54,7 +54,15 @@ export const queryKeys = {
       [...queryKeys.board.comments(postId), page] as const,
   },
   // features/foster — 임시보호 (김경우)
-  foster: {},
+  foster: {
+    all: ['foster'] as const,
+    lists: () => [...queryKeys.foster.all, 'list'] as const,
+    list: (params: import('@/features/foster/types').FosterListParams) =>
+      [...queryKeys.foster.lists(), params] as const,
+    details: () => [...queryKeys.foster.all, 'detail'] as const,
+    detail: (fosterId: number) =>
+      [...queryKeys.foster.details(), fosterId] as const,
+  },
   // features/mypage — 마이페이지 (구지훈)
   mypage: {
     all: ["mypage"] as const,
@@ -112,6 +120,11 @@ export const queryKeys = {
     memberLoginLogs: (id: number, page: number) =>
       [...queryKeys.admin.members(), "loginLogs", id, page] as const,
     // ===== 김경우 (임시보호 신청 관리) =======
+    fosters: () => [...queryKeys.admin.all, 'fosters'] as const,
+    fosterList: (params: import('@/features/foster/types').FosterAdminListParams) =>
+      [...queryKeys.admin.fosters(), 'list', params] as const,
+    fosterDetail: (fosterId: number) =>
+      [...queryKeys.admin.fosters(), 'detail', fosterId] as const,
     // ===== 유창호 (게시글 관리) =======
   },
 
