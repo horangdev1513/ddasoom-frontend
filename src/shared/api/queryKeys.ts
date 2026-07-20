@@ -74,6 +74,22 @@ export const queryKeys = {
   // features/admin — 공지사항, Faq, Qna, 관리자페이지 (이서진)
   admin: {
     all: ['admin'] as const,
+    // ===== 대시보드 (구지훈) =======
+    dashboard: () => [...queryKeys.admin.all, 'dashboard'] as const,
+    dashboardPendingSummary: () => [...queryKeys.admin.dashboard(), 'pendingSummary'] as const,
+    dashboardStatusDistribution: () => [...queryKeys.admin.dashboard(), 'statusDistribution'] as const,
+    dashboardNewMembers: () => [...queryKeys.admin.dashboard(), 'newMembers'] as const,
+
+    // ===== 통계 (구지훈) =======
+    statistics: () => [...queryKeys.admin.all, 'statistics'] as const,
+    statFosterMonthly: (year: number) => [...queryKeys.admin.statistics(), 'fosterMonthly', year] as const,
+    statApprovalRate: () => [...queryKeys.admin.statistics(), 'approvalRate'] as const,
+    statAvgDuration: () => [...queryKeys.admin.statistics(), 'avgDuration'] as const,
+    statKindRatio: () => [...queryKeys.admin.statistics(), 'kindRatio'] as const,
+    statRegion: () => [...queryKeys.admin.statistics(), 'region'] as const,
+    statTopAnimals: () => [...queryKeys.admin.statistics(), 'topAnimals'] as const,
+    statSignupDaily: (offset: number) => [...queryKeys.admin.statistics(), 'signupDaily', offset] as const,
+
     // ===== 공지사항 (이서진) =======
     notices: () => [...queryKeys.admin.all, 'notices'] as const,
     noticeList: (params: { page?: number; size?: number }) =>
@@ -154,4 +170,5 @@ export const queryKeys = {
       [...queryKeys.support.faqs(), 'detail', id] as const,
     faqCategories: () => [...queryKeys.support.all, 'faqCategories'] as const,
   },
+
 } as const;

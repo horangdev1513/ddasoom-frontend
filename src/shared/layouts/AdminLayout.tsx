@@ -6,6 +6,7 @@ import { Flag } from 'lucide-react';
 // 관리자 사이드바 메뉴 정의 — 새 관리 페이지 추가 시 여기에 한 줄만 추가
 const MENU_ITEMS = [
   { label: '대시보드', path: '/admin' },
+  { label: '통계', path: '/admin/statistics' },
   { label: '공지사항', path: '/admin/notices' },
   { label: 'FAQ', path: '/admin/faqs' },
   { label: 'QnA', path: '/admin/qnas' },
