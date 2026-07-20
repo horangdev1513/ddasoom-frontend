@@ -42,7 +42,7 @@ export function BoardListPage() {
         <h1 className='text-3xl font-bold text-foreground'>{board.label}</h1>
         <button
           type='button'
-          onClick={() => navigate('/board/review/write')}
+          onClick={() => navigate(`/board/${slug}/write`)}
           className='flex shrink-0 items-center justify-center gap-2 rounded-xl bg-ring px-6 py-3 text-base font-bold text-white transition-all hover:brightness-105'
         >
           <SquarePen size={16} />
@@ -52,7 +52,11 @@ export function BoardListPage() {
 
       {/* ── 필터 + 검색바 — 메인 유기동물 검색바(AnimalPreviewSection)와 동일 톤 ── */}
       <div className='mb-8 flex items-stretch gap-3 rounded-2xl border border-border bg-white p-4'>
-        <CategoryFilter value={category} onChange={handleCategoryChange} />
+        <CategoryFilter
+          categories={board.categories}
+          value={category}
+          onChange={handleCategoryChange}
+        />
 
         <div className='w-px bg-border' />
 
