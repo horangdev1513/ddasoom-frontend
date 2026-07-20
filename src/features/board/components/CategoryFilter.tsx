@@ -1,19 +1,22 @@
-// 게시판 강아지/고양이 카테고리 토글 (텍스트만).
+// 게시판 카테고리 토글 (텍스트만). 카테고리 목록은 게시판별로 다르므로 prop으로 받는다.
 // 색상·활성 스킴은 메인 유기동물 검색바(AnimalPreviewSection)와 동일하게 맞춰 통일감을 유지한다.
 //
 // value=undefined 는 "전체"를 뜻하고, 활성 버튼을 다시 누르면 전체로 풀린다.
 
-const CATEGORIES = ['강아지', '고양이'] as const;
-
 interface CategoryFilterProps {
+  categories: readonly string[]; // BOARD_BY_SLUG[slug].categories
   value: string | undefined;
   onChange: (value: string | undefined) => void;
 }
 
-export function CategoryFilter({ value, onChange }: CategoryFilterProps) {
+export function CategoryFilter({
+  categories,
+  value,
+  onChange,
+}: CategoryFilterProps) {
   return (
     <div className='flex gap-3'>
-      {CATEGORIES.map((category) => {
+      {categories.map((category) => {
         const active = value === category;
         return (
           <button
