@@ -91,7 +91,9 @@ export function FosterDetailPage() {
     data.status === 'EXTENDED' ||
     data.status === 'ENDED';
 
-  const canManageRequest =
+  const canEdit = data.status === 'PENDING';
+
+  const canDelete =
     data.status === 'PENDING' || data.status === 'REJECTED';
 
   const handleDelete = () => {
@@ -194,44 +196,44 @@ export function FosterDetailPage() {
 
       <div className="flex flex-wrap justify-between gap-3 border-t border-border pt-6">
         <div className="flex gap-3">
-          {canManageRequest && (
-            <Button asChild variant="outline">
-              <Link to={`/mypage/fosters/${data.fosterId}/edit`}>
-                신청 수정
-              </Link>
-            </Button>
-          )}
+          {canEdit && (
+  <Button asChild variant="outline">
+    <Link to={`/mypage/fosters/${data.fosterId}/edit`}>
+      신청 수정
+    </Link>
+  </Button>
+)}
 
-          {canManageRequest && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" disabled={deleteFosterMutation.isPending}>
-                  신청 삭제
-                </Button>
-              </AlertDialogTrigger>
+        {canDelete && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" disabled={deleteFosterMutation.isPending}>
+                신청 삭제
+              </Button>
+            </AlertDialogTrigger>
 
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>임시보호 신청을 삭제할까요?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    삭제한 신청 내역은 되돌릴 수 없습니다.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel disabled={deleteFosterMutation.isPending}>
-                    취소
-                  </AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleDelete}
-                    disabled={deleteFosterMutation.isPending}
-                    className="bg-destructive text-white hover:bg-destructive/90"
-                  >
-                    {deleteFosterMutation.isPending ? '삭제 중…' : '삭제하기'}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>임시보호 신청을 삭제할까요?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  삭제한 신청 내역은 되돌릴 수 없습니다.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={deleteFosterMutation.isPending}>
+                  취소
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDelete}
+                  disabled={deleteFosterMutation.isPending}
+                  className="bg-destructive text-white hover:bg-destructive/90"
+                >
+                  {deleteFosterMutation.isPending ? '삭제 중...' : '삭제하기'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
         </div>
 
         <Button asChild variant="outline">

@@ -47,7 +47,7 @@ export function FosterEditPage() {
     );
   }
 
-  const canEdit = data.status === 'PENDING' || data.status === 'REJECTED';
+  const canEdit = data.status === 'PENDING';
 
   if (!canEdit) {
     return (
@@ -55,7 +55,7 @@ export function FosterEditPage() {
         <Alert variant="destructive">
           <AlertTitle>수정할 수 없는 신청입니다.</AlertTitle>
           <AlertDescription>
-            신청 대기 또는 신청 거절 상태에서만 수정할 수 있습니다.
+            신청 대기 상태에서만 수정할 수 있습니다.
           </AlertDescription>
         </Alert>
         <Button asChild variant="outline" className="mt-6">
