@@ -28,7 +28,6 @@ const NAV_MENUS = [
   {
     label: '임시보호',
     items: [
-      { label: '임시보호 신청', to: '/foster/apply' },
       { label: '신청 내역', to: '/mypage/fosters' },
     ],
   },
