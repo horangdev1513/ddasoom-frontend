@@ -73,14 +73,16 @@ const columns: ColumnDef<AdminMemberListItem>[] = [
   {
     // deletedAt 유무를 정렬 가능한 값으로 변환 — accessorFn으로 파생 값 생성
     id: 'status',
-    accessorFn: (row) => (row.deletedAt ? 1 : 0), // 활성=0, 탈퇴=1 → 오름차순 시 활성이 먼저
+    // 정렬용 파생값 — 활성=0, 숨김=1, 탈퇴=2 (문제 상태가 아래로 모이도록)
+    accessorFn: (row) => (row.deletedAt ? 2 : row.status === 'HIDDEN' ? 1 : 0),
     header: ({ column }) => <SortableHeader column={column} label="상태" />,
-    cell: ({ row }) =>
-      row.original.deletedAt ? (
-        <Badge variant="destructive">탈퇴</Badge>
-      ) : (
-        <Badge variant="secondary">활성</Badge>
-      ),
+    cell: ({ row }) => (
+      row.original.deletedAt
+        ? <Badge variant="destructive">탈퇴</Badge>
+        : row.original.status === 'HIDDEN'
+          ? <Badge variant="outline">숨김</Badge>
+          : <Badge variant="secondary">활성</Badge>
+    ),
   },
   {
     accessorKey: 'createdAt',

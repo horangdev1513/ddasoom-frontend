@@ -6,6 +6,7 @@ import {
   getAdminMemberDetail,
   getAdminMemberLoginLogs,
   forceWithdrawMember,
+  updateMemberStatus, type MemberStatus,
   restoreMember,
   type AdminMemberSearchParams,
 } from '@/features/admin/api/adminMemberApi';
@@ -53,6 +54,18 @@ export function useRestoreMember() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.members() });
       toast.success('계정을 복구했습니다.');
+    },
+  });
+}
+
+export function useUpdateMemberStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ memberId, status }: { memberId: number; status: MemberStatus }) =>
+      updateMemberStatus(memberId, status),
+    onSuccess: (_, { status }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.members() });
+      toast.success(status === 'HIDDEN' ? '회원을 숨김 처리했습니다.' : '회원을 정상 상태로 전환했습니다.');
     },
   });
 }

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   useAdminMemberDetail, useAdminMemberLoginLogs, useForceWithdrawMember, useRestoreMember,
+  useUpdateMemberStatus,
 } from '@/features/admin/hooks/useMembers';
 import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
@@ -27,6 +28,7 @@ export function AdminMemberDetailPage() {
   const { data: logs } = useAdminMemberLoginLogs(id, logPage);
   const forceWithdraw = useForceWithdrawMember();
   const restore = useRestoreMember();
+  const updateStatus = useUpdateMemberStatus();
 
   if (isLoading) {
     return <div className="p-8 text-center text-muted-foreground">불러오는 중…</div>;
@@ -36,6 +38,7 @@ export function AdminMemberDetailPage() {
   }
 
   const isWithdrawn = member.deletedAt != null;
+  const isHidden = member.status === 'HIDDEN';
 
   const handleForceWithdraw = () => {
     if (!id) return;
@@ -44,6 +47,12 @@ export function AdminMemberDetailPage() {
   const handleRestore = () => {
     if (!id) return;
     restore.mutate(id);
+  };
+  // 노출 상태 전환 — 신고 확인 후 관리자 수동 제재 (자동 처리 없음 — 팀 정책).
+  // ADMIN 대상은 백엔드가 MEMBER_008로 차단, 탈퇴 회원은 MEMBER_003 (버튼 자체를 숨겨 이중 방어)
+  const handleToggleStatus = () => {
+    if (!id) return;
+    updateStatus.mutate({ memberId: id, status: isHidden ? 'ACTIVE' : 'HIDDEN' });
   };
 
   return (
@@ -58,43 +67,77 @@ export function AdminMemberDetailPage() {
 
         {/* 강제탈퇴/복구 — ADMIN 계정 대상 시 400 MEMBER_007은 컨트롤러가 이미 막음(백엔드),
             여기선 UI 노출만 활성/탈퇴 상태로 분기 */}
-        {isWithdrawn ? (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline">계정 복구</Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>계정을 복구할까요?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  복구 즉시 해당 회원은 새로운 토큰을 발급받아 정상 이용이 가능해집니다.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>취소</AlertDialogCancel>
-                <AlertDialogAction onClick={handleRestore}>복구</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        ) : (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" disabled={member.role === 'ADMIN'}>강제 탈퇴</Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>이 회원을 강제 탈퇴시킬까요?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  즉시 전체 세션이 종료되며, 이미 발급된 토큰으로도 더 이상 활동할 수 없게 됩니다.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>취소</AlertDialogCancel>
-                <AlertDialogAction onClick={handleForceWithdraw}>강제 탈퇴</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
+        <div className="flex items-center gap-2">
+          {isWithdrawn ? (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline">계정 복구</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>계정을 복구할까요?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    복구 즉시 해당 회원은 새로운 토큰을 발급받아 정상 이용이 가능해집니다.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>취소</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleRestore}>복구</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          ) : (
+            <>
+              {/* 노출 상태 전환 — 신고 제재. 탈퇴 회원에겐 미노출 (탈퇴가 더 강한 제재라 상태 변경이 무의미) */}
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant={isHidden ? 'secondary' : 'outline'}
+                    disabled={member.role === 'ADMIN'}
+                  >
+                    {isHidden ? '숨김 해제' : '회원 숨김'}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      {isHidden ? '숨김을 해제할까요?' : '이 회원을 숨김 처리할까요?'}
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {isHidden
+                        ? '회원이 정상(ACTIVE) 상태로 전환됩니다.'
+                        : '신고 내용을 확인하셨나요? 숨김(HIDDEN) 처리는 관리자가 직접 검토한 뒤 진행하는 수동 제재입니다.'}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>취소</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleToggleStatus}>
+                      {isHidden ? '해제' : '숨김 처리'}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" disabled={member.role === 'ADMIN'}>강제 탈퇴</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>이 회원을 강제 탈퇴시킬까요?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      즉시 전체 세션이 종료되며, 이미 발급된 토큰으로도 더 이상 활동할 수 없게 됩니다.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>취소</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleForceWithdraw}>강제 탈퇴</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </>
+          )}
+        </div>
       </div>
 
       {/* 기본 정보 */}
@@ -109,7 +152,13 @@ export function AdminMemberDetailPage() {
         </div>
         <div>
           <span className="text-sm text-muted-foreground">상태</span>
-          <p>{isWithdrawn ? <Badge variant="destructive">탈퇴</Badge> : <Badge variant="secondary">활성</Badge>}</p>
+          <p>
+            {isWithdrawn
+              ? <Badge variant="destructive">탈퇴</Badge>
+              : isHidden
+                ? <Badge variant="outline">숨김</Badge>
+                : <Badge variant="secondary">활성</Badge>}
+          </p>
         </div>
         <div><span className="text-sm text-muted-foreground">가입일</span><p className="font-medium">{member.createdAt.slice(0, 10)}</p></div>
         <div><span className="text-sm text-muted-foreground">최근 수정일</span><p className="font-medium">{member.updatedAt.slice(0, 10)}</p></div>
@@ -161,7 +210,7 @@ export function AdminMemberDetailPage() {
                 <button
                   onClick={() => setLogPage((p) => p + 1)}
                   disabled={!logs.hasNext}
-                  className="flex items-center gap-1 rounded-xl border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-secondary disabled:opacity-40"
+                  className="flex items-center gap-1 rounded-xl border border-border px-3 py-1.5 text-sm text-muted-foreground disabled:opacity-40 transition-colors hover:bg-secondary"
                 >
                   다음 <ChevronRight size={15} />
                 </button>

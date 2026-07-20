@@ -14,6 +14,7 @@ export interface AdminMemberListItem {
   email: string;
   nickname: string;
   role: Role;
+  status: MemberStatus; // ACTIVE=정상 / HIDDEN=신고 제재 숨김 (백엔드 V12 — 탈퇴 여부와 별개 축)
   createdAt: string;
   deletedAt: string | null; // null = 활성, 값 있음 = 탈퇴 — 별도 status 필드 없음(프론트 파생 표시)
 }
@@ -26,6 +27,7 @@ export interface AdminMemberDetail {
   nickname: string;
   tel: string;
   role: Role;
+  status: MemberStatus; // ACTIVE=정상 / HIDDEN=신고 제재 숨김 (백엔드 V12 — 탈퇴 여부와 별개 축)
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
@@ -101,5 +103,19 @@ export async function forceWithdrawMember(memberId: number): Promise<void> {
  */
 export async function restoreMember(memberId: number): Promise<AdminMemberListItem> {
   const res = await axiosInstance.patch<ApiResponse<AdminMemberListItem>>(`/admin/members/${memberId}/restore`);
+  return res.data.data as AdminMemberListItem;
+}
+
+// 회원 노출 상태 — 백엔드 member/domain/MemberStatus.java와 1:1
+export type MemberStatus = 'ACTIVE' | 'HIDDEN';
+
+/**
+ * 회원 노출 상태 변경 (신고 제재) — 백엔드: PATCH /api/admin/members/{memberId}/status
+ * ⚠️ ADMIN 계정 대상 시 400 MEMBER_008 / 탈퇴 회원 대상 시 400 MEMBER_003 (백엔드가 차단).
+ * 신고 확인 후 관리자가 "직접" 전환하는 수동 제재 — 자동 처리 없음 (팀 정책).
+ */
+export async function updateMemberStatus(memberId: number, status: MemberStatus): Promise<AdminMemberListItem> {
+  const res = await axiosInstance.patch<ApiResponse<AdminMemberListItem>>(
+    `/admin/members/${memberId}/status`, { status });
   return res.data.data as AdminMemberListItem;
 }
