@@ -30,6 +30,7 @@ import { AdminNoticeListPage } from '@/pages/admin/AdminNoticeListPage';
 import { AdminNoticeFormPage } from '@/pages/admin/AdminNoticeFormPage';
 import { AdminMemberListPage } from '@/pages/admin/AdminMemberListPage';
 import { AdminMemberDetailPage } from '@/pages/admin/AdminMemberDetailPage';
+import { AdminStatisticsPage } from '@/pages/admin/AdminStatisticsPage';
 import { AdminFaqListPage } from '@/pages/admin/AdminFaqListPage';
 import { AdminFaqFormPage } from '@/pages/admin/AdminFaqFormPage';
 import { AdminQnaListPage } from '@/pages/admin/AdminQnaListPage';
@@ -143,6 +144,8 @@ export const router = createBrowserRouter([
           // ===== 유저 관리 (구지훈) =======
           { path: 'members', element: <AdminMemberListPage /> },
           { path: 'members/:memberId', element: <AdminMemberDetailPage /> },
+          // ===== 통계 (구지훈) =======
+          { path: 'statistics', element: <AdminStatisticsPage /> },
 
           // ===== 임시보호 신청 관리 (김경우) =======
           { path: 'fosters', element: <AdminFosterListPage /> },
