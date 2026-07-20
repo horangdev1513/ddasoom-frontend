@@ -43,6 +43,8 @@ export function AnimalCard({
     : STATUS_STYLE.available;
   const gender = GENDER[animal.gender];
 
+  const FALLBACK_IMAGE = import.meta.env.VITE_IMAGE_PLACEHOLDER;
+
   const handleLikeClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // 카드 클릭(상세 이동)과 분리
     if (!likePending) onLikeToggle?.(animal);
