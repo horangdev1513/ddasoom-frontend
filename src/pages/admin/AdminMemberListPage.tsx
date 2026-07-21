@@ -38,6 +38,16 @@ const ROLE_OPTIONS: { value: Role | 'ALL'; label: string }[] = [
   { value: 'ADMIN', label: 'ADMIN' },
 ];
 
+// 상태 필터 — 회원 상태는 파생값(탈퇴=deletedAt, 숨김=status HIDDEN, 그 외 활성).
+// status 컬럼 accessorFn과 동일 기준: 활성=0 / 숨김=1 / 탈퇴=2
+type StatusFilter = 'ALL' | 'ACTIVE' | 'HIDDEN' | 'DELETED';
+const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
+  { value: 'ALL', label: '전체 상태' },
+  { value: 'ACTIVE', label: '활성' },
+  { value: 'HIDDEN', label: '숨김' },
+  { value: 'DELETED', label: '탈퇴' },
+];
+
 // ⚠️ 컴포넌트 바깥(모듈 스코프)에 둔다 — 렌더링마다 재생성되는 함수를 state로 넘기면
 // TanStack Table이 "필터 함수가 바뀌었다"고 오판해 페이지 리셋 → 리렌더 → 재생성 무한루프에 빠진다.
 // globalFilterFn의 정식 시그니처는 (Row, columnId, filterValue) — 첫 인자는 Row 객체다.
@@ -73,10 +83,16 @@ const columns: ColumnDef<AdminMemberListItem>[] = [
     filterFn: 'equals', // Role 셀렉트 필터용 — 정확 일치
   },
   {
-    // deletedAt 유무를 정렬 가능한 값으로 변환 — accessorFn으로 파생 값 생성
+    // deletedAt/status를 상태 문자열로 변환 — 정렬·필터 공용 파생 값
     id: 'status',
-    // 정렬용 파생값 — 활성=0, 숨김=1, 탈퇴=2 (문제 상태가 아래로 모이도록)
-    accessorFn: (row) => (row.deletedAt ? 2 : row.status === 'HIDDEN' ? 1 : 0),
+    // 활성='ACTIVE' / 숨김='HIDDEN' / 탈퇴='DELETED' — 상태 필터의 equals 매칭 대상
+    accessorFn: (row) => (row.deletedAt ? 'DELETED' : row.status === 'HIDDEN' ? 'HIDDEN' : 'ACTIVE'),
+    filterFn: 'equals', // 상태 셀렉트 필터용 — 정확 일치
+    // 정렬 순서 고정: 활성 → 숨김 → 탈퇴 (문제 상태가 아래로 모이도록)
+    sortingFn: (a, b) => {
+      const order: Record<string, number> = { ACTIVE: 0, HIDDEN: 1, DELETED: 2 };
+      return order[a.getValue('status') as string] - order[b.getValue('status') as string];
+    },
     header: ({ column }) => <SortableHeader column={column} label="상태" />,
     cell: ({ row }) => (
       row.original.deletedAt
@@ -100,16 +116,19 @@ export function AdminMemberListPage() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
   const [role, setRole] = useState<Role | 'ALL'>('ALL');
+  const [status, setStatus] = useState<StatusFilter>('ALL');
 
   // 전체 1회 로드 — 검색어는 쿼리 조건이 아니므로 타이핑해도 재조회 없음
   const { data, isLoading, isError } = useAdminMembers({ page: 0, size: FETCH_ALL_SIZE });
   const members = useMemo(() => data?.content ?? [], [data]);
 
-  // role이 실제로 바뀔 때만 새 배열을 만든다 — 참조 안정성이 무한루프 방지의 핵심
-  const columnFilters: ColumnFiltersState = useMemo(
-    () => (role === 'ALL' ? [] : [{ id: 'role', value: role }]),
-    [role],
-  );
+  // role/status가 실제로 바뀔 때만 새 배열을 만든다 — 참조 안정성이 무한루프 방지의 핵심
+  const columnFilters: ColumnFiltersState = useMemo(() => {
+    const filters: ColumnFiltersState = [];
+    if (role !== 'ALL') filters.push({ id: 'role', value: role });
+    if (status !== 'ALL') filters.push({ id: 'status', value: status });
+    return filters;
+  }, [role, status]);
 
   const table = useReactTable({
     data: members,
@@ -147,6 +166,16 @@ export function AdminMemberListPage() {
           </SelectTrigger>
           <SelectContent>
             {ROLE_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={status} onValueChange={(v) => setStatus(v as StatusFilter)}>
+          <SelectTrigger className="w-36">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {STATUS_OPTIONS.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
             ))}
           </SelectContent>
