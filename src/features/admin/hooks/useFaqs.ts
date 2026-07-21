@@ -26,6 +26,8 @@ export function useAdminFaq(faqId: number | null) {
     queryKey: queryKeys.admin.faqDetail(faqId ?? 0),
     queryFn: () => getAdminFaq(faqId as number),
     enabled: faqId != null,
+    // images.url이 Presigned(30분 만료)라 폼 진입마다 최신 조회로 받는다 — 만료된 미리보기 방지.
+    staleTime: 0,
   });
 }
 
