@@ -12,6 +12,7 @@ import { useSignupDailyTrend } from '@/features/admin/hooks/useStatistics';
 import { SummaryCard } from '@/features/admin/components/SummaryCard';
 import type { FosterStatus } from '@/features/admin/api/dashboardApi';
 import { formatLocalDateShort } from '@/shared/utils/date';
+import { AnimalSyncButton } from '@/features/admin/components/AnimalSyncButton';
 
 // 관리자 대시보드 — "오늘 뭘 처리해야 하나"(액션 지표 + 현재 스냅샷).
 // 숫자/막대 클릭 시 해당 처리 화면으로 이동. 가입자 추이는 현재 스냅샷 성격이라 여기 배치.
@@ -47,7 +48,10 @@ export function AdminDashboardPage() {
 
   return (
     <div className="p-6">
-      <h1 className="mb-6 text-xl font-semibold">대시보드</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-xl font-semibold">대시보드</h1>
+        <AnimalSyncButton />
+      </div>
 
       {/* 처리대기 그룹 — 최상단. 오늘 가입자도 여기로 (5개 한 줄) */}
       <h2 className="mb-3 text-sm font-semibold text-muted-foreground">처리 대기</h2>
