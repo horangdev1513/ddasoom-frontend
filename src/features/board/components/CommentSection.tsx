@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '@/shared/stores/authStore';
+import { ReportModal } from '@/features/report/components/ReportModal';
 import type { CommentItem } from '@/features/board/types';
 import {
   useCommentsQuery,
@@ -99,6 +100,7 @@ export function CommentSection({ postId }: CommentSectionProps) {
                 isMine={
                   user != null && user.memberId === comment.author.memberId
                 }
+                isLoggedIn={user != null}
               />
             ))}
           </ul>
@@ -137,11 +139,13 @@ interface CommentRowProps {
   postId: number;
   comment: CommentItem;
   isMine: boolean;
+  isLoggedIn: boolean;
 }
 
-function CommentRow({ postId, comment, isMine }: CommentRowProps) {
+function CommentRow({ postId, comment, isMine, isLoggedIn }: CommentRowProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const updateMutation = useUpdateComment(postId);
   const deleteMutation = useDeleteComment(postId);
@@ -198,6 +202,16 @@ function CommentRow({ postId, comment, isMine }: CommentRowProps) {
             </button>
           </div>
         )}
+        {/* 신고는 로그인한 사용자의 '타인 댓글'에만 노출 (본인 댓글엔 수정/삭제만) */}
+        {isLoggedIn && !isMine && !isEditing && (
+          <button
+            type='button'
+            onClick={() => setReportOpen(true)}
+            className='text-xs text-muted-foreground hover:text-destructive'
+          >
+            신고
+          </button>
+        )}
       </div>
 
       {isEditing ? (
@@ -231,6 +245,14 @@ function CommentRow({ postId, comment, isMine }: CommentRowProps) {
           {comment.content}
         </p>
       )}
+
+      {/* 신고 모달 — targetType은 POST_COMMENT, targetId는 이 댓글의 PK */}
+      <ReportModal
+        targetType='POST_COMMENT'
+        targetId={comment.commentId}
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+      />
     </li>
   );
 }
