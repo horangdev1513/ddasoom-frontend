@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Eye } from 'lucide-react';
+import { Eye, Siren } from 'lucide-react';
 
+import { ReportModal } from '@/features/report/components/ReportModal';
 import { resolveBoard, resolveSlugByBoardType } from '@/features/board/types';
 import { usePostDetailQuery } from '@/features/board/hooks/usePostQuery';
 import { useDeletePost } from '@/features/board/hooks/useDeletePost';
@@ -31,6 +33,7 @@ export function PostDetailPage() {
     board && parsedId != null ? parsedId : null,
   );
   const deleteMutation = useDeletePost();
+  const [reportOpen, setReportOpen] = useState(false);
 
   if (!board || parsedId == null) return <NotFoundPage />;
 
@@ -125,7 +128,27 @@ export function PostDetailPage() {
             </Button>
           </div>
         )}
+        {/* 신고는 로그인한 비작성자에게만 노출 (수정/삭제 게이팅과 동일 원칙) */}
+        {!isAuthor && user != null && (
+          <Button
+            variant='ghost'
+            size='sm'
+            onClick={() => setReportOpen(true)}
+            className='gap-1 text-muted-foreground hover:text-destructive'
+          >
+            <Siren size={14} />
+            신고
+          </Button>
+        )}
       </div>
+
+      {/* 신고 모달 — open 상태는 이 화면이 소유 (ReportModal 사용 규약) */}
+      <ReportModal
+        targetType='POST'
+        targetId={data.postId}
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+      />
 
       {/* ── 댓글 ── */}
       <CommentSection postId={data.postId} />

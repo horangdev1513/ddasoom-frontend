@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,6 +9,9 @@ import {
   useUpdateFaq,
   useFaqCategories,
 } from '@/features/admin/hooks/useFaqs';
+import { MAX_FAQ_IMAGES } from '@/features/admin/api/faqApi';
+import { ImageAttachInput } from '@/shared/components/common/ImageAttachInput';
+import type { UploadedImage } from '@/shared/components/editor/editorImageApi';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Textarea } from '@/shared/components/ui/textarea';
@@ -40,6 +43,9 @@ export function AdminFaqFormPage() {
   const createFaq = useCreateFaq();
   const updateFaq = useUpdateFaq();
 
+  // 첨부 이미지는 선업로드 방식이라 imageId 목록을 폼 밖 state로 관리(QnaWritePage와 동일).
+  const [images, setImages] = useState<UploadedImage[]>([]);
+
   const {
     register,
     handleSubmit,
@@ -51,21 +57,23 @@ export function AdminFaqFormPage() {
     defaultValues: { category: '', question: '', answer: '' },
   });
 
-  // 수정 모드 — 기존 데이터 로드되면 폼에 채움
+  // 수정 모드 — 기존 데이터 로드되면 폼과 첨부 이미지에 채움
   useEffect(() => {
     if (isEdit && faq) {
       reset({ category: faq.category, question: faq.question, answer: faq.answer });
+      setImages(faq.images);
     }
   }, [isEdit, faq, reset]);
 
   const onSubmit = (form: FaqForm) => {
+    const payload = { ...form, imageIds: images.map((image) => image.imageId) };
     if (isEdit && numericId != null) {
       updateFaq.mutate(
-        { faqId: numericId, payload: form },
+        { faqId: numericId, payload },
         { onSuccess: () => navigate('/admin/faqs') },
       );
     } else {
-      createFaq.mutate(form, {
+      createFaq.mutate(payload, {
         onSuccess: () => navigate('/admin/faqs'),
       });
     }
@@ -116,6 +124,17 @@ export function AdminFaqFormPage() {
             rows={12}
           />
           {errors.answer && <p className="text-sm text-destructive">{errors.answer.message}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <Label>첨부 이미지 (선택)</Label>
+          <ImageAttachInput
+            ownerType="FAQ"
+            value={images}
+            onChange={setImages}
+            maxImages={MAX_FAQ_IMAGES}
+            disabled={isSubmitting}
+          />
         </div>
 
         <div className="flex gap-2">

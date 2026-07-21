@@ -165,6 +165,19 @@ export const queryKeys = {
     fosterDetail: (fosterId: number) =>
       [...queryKeys.admin.fosters(), 'detail', fosterId] as const,
     // ===== 유창호 (게시글 관리) =======
+    // 강제삭제는 상세·댓글·목록이 함께 바뀌므로 posts() 루트로 한 번에 무효화한다.
+    posts: () => [...queryKeys.admin.all, 'posts'] as const,
+    postList: (params: {
+      boardType?: string;
+      keyword?: string;
+      page?: number;
+      size?: number;
+    }) => [...queryKeys.admin.posts(), 'list', params] as const,
+    postDetail: (postId: number) =>
+      [...queryKeys.admin.posts(), 'detail', postId] as const,
+    // 댓글 키는 posts() 하위 — 게시글 강제삭제 시 댓글도 함께 무효화되는 계층 관계.
+    postComments: (postId: number, page: number) =>
+      [...queryKeys.admin.posts(), 'comments', postId, page] as const,
   },
 
   // features/qna — 유저용 1:1 문의 (이서진)

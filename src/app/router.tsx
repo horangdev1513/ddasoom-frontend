@@ -55,6 +55,8 @@ import { AdminFosterProgressDetailPage } from '@/pages/admin/AdminFosterProgress
 import { AdminFosterApplicationEditPage } from '@/pages/admin/AdminFosterApplicationEditPage';
 import { AdminFosterProgressEditPage } from '@/pages/admin/AdminFosterProgressEditPage';
 import { PostWritePage } from '@/pages/board/PostWritePage';
+import { AdminPostListPage } from '@/pages/admin/AdminPostListPage';
+import { AdminPostDetailPage } from '@/pages/admin/AdminPostDetailPage';
 
 // 전체 라우트 정의(단일 파일에서 관리). 역할별 라우트를 한곳에 모아 등록한다.
 // 현재는 경로 등록 + placeholder 페이지 연결까지만. 각 페이지 실제 구현은 도메인 담당자 몫.
@@ -154,8 +156,8 @@ export const router = createBrowserRouter([
             path: 'fosters',
             element: (
               <AdminFosterListPage
-                key="application-foster-list"
-                scope="APPLICATION"
+                key='application-foster-list'
+                scope='APPLICATION'
               />
             ),
           },
@@ -171,8 +173,8 @@ export const router = createBrowserRouter([
             path: 'active-fosters',
             element: (
               <AdminFosterListPage
-                key="progress-foster-list"
-                scope="PROGRESS"
+                key='progress-foster-list'
+                scope='PROGRESS'
               />
             ),
           },
@@ -185,6 +187,8 @@ export const router = createBrowserRouter([
             element: <AdminFosterProgressDetailPage />,
           },
           // ===== 게시글 관리 (유창호) =======
+          { path: 'posts', element: <AdminPostListPage /> },
+          { path: 'posts/:postId', element: <AdminPostDetailPage /> },
 
           // ===== 유기동물 동기화 (김종식) - 대시보드 우측 상단 버튼으로 이동, 별도 라우트 없음 =======
 

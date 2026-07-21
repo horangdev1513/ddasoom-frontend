@@ -1,5 +1,6 @@
 import { axiosInstance } from '@/shared/api/axiosInstance';
 import type { ApiResponse } from '@/shared/types/api';
+import type { UploadedImage } from '@/shared/components/editor/editorImageApi';
 
 // features/support 도메인 API 모듈 — 유저용 FAQ 열람(읽기 전용).
 // 백엔드: support/controller/FaqController.java (/api/faqs, 공개 API)
@@ -23,6 +24,9 @@ export interface FaqDetail {
   isVisible: boolean;
   createdAt: string;
   updatedAt: string;
+  // 첨부 이미지 — { imageId, url, isThumbnail } 형태(shared UploadedImage와 동일).
+  // ⚠️ url은 Presigned(30분 유효)라 상세 진입마다 최신 조회로 받는다(useFaq staleTime 0).
+  images: UploadedImage[];
 }
 
 // 응답: 카테고리 옵션 (GET /api/faqs/categories) — 필터/태그 표시용

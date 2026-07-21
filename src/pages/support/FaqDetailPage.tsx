@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useFaq, useFaqCategories } from '@/features/support/hooks/useFaqs';
+import { ImageThumbnailGrid } from '@/shared/components/common/ImageThumbnailGrid';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 
@@ -44,6 +45,12 @@ export function FaqDetailPage() {
       <div className="min-h-40 whitespace-pre-wrap border-t pt-6 leading-relaxed">
         {data.answer}
       </div>
+
+      {data.images.length > 0 && (
+        <div className="mt-6">
+          <ImageThumbnailGrid images={data.images} />
+        </div>
+      )}
 
       <div className="mt-8 flex justify-center">
         <Button variant="outline" onClick={() => navigate('/support/faqs')}>
