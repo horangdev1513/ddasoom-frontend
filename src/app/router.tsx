@@ -37,6 +37,7 @@ import { AdminQnaListPage } from '@/pages/admin/AdminQnaListPage';
 import { AdminQnaDetailPage } from '@/pages/admin/AdminQnaDetailPage';
 import { AdminReportListPage } from '@/pages/admin/AdminReportListPage';
 import { AdminReportDetailPage } from '@/pages/admin/AdminReportDetailPage';
+import { AdminAnimalSyncPage } from '@/pages/admin/AdminAnimalSyncPage';
 import { QnaListPage } from '@/pages/qna/QnaListPage';
 import { QnaWritePage } from '@/pages/qna/QnaWritePage';
 import { QnaDetailPage } from '@/pages/qna/QnaDetailPage';
@@ -156,6 +157,9 @@ export const router = createBrowserRouter([
           { path: 'fosters/:fosterId/edit', element: <AdminFosterEditPage /> },
           { path: 'fosters/:fosterId', element: <AdminFosterDetailPage /> },
           // ===== 게시글 관리 (유창호) =======
+
+          // ===== 유기동물 동기화 (김종식) =======
+          { path: 'animals/sync', element: <AdminAnimalSyncPage /> },
 
           { path: '*', element: <AdminDashboardPage /> }, // /admin/** (관리 서브페이지 자리)
         ],

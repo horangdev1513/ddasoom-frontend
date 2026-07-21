@@ -17,6 +17,7 @@ export interface AnimalPreview {
   location: string;            // 보호 장소
   likeCount: number;
   isFostered: boolean;         // 임시보호 중 여부 — 카드 상태 뱃지의 파생 근거
+  isLiked: boolean;
   imageUrl: string | null;     // ⚠️ NULL 가능 — 카드에서 placeholder 처리 필수
 }
 

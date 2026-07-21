@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PawPrint, Search, Heart } from "lucide-react";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -9,6 +10,8 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select";
 import { MoreButton } from "@/shared/components/common/MoreButton";
+import { useAuthStore } from "@/shared/stores/authStore";
+import { useAnimalLikeMutation } from "@/features/animals/hooks/useAnimalLikeMutation";
 import type { AnimalPreview } from "@/features/animals/types";
 import dogIcon from "@/assets/dog.png";
 import catIcon from "@/assets/cat.png";
@@ -306,7 +309,8 @@ const STATUS_STYLE = {
 } as const;
 
 // 이미지 NULL(공공API 미제공) 대비 placeholder
-const FALLBACK_IMAGE = import.meta.env.VITE_IMAGE_PLACEHOLDER;
+const FALLBACK_IMAGE =
+  "https://placehold.co/400x300/FFF3D6/9C8B75?text=%F0%9F%90%BE";
 
 export function AnimalPreviewSection({
   animals,
@@ -314,9 +318,27 @@ export function AnimalPreviewSection({
   animals: AnimalPreview[];
 }) {
   const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
+  const {
+    mutate: toggleLike,
+    isPending: likePending,
+    variables,
+  } = useAnimalLikeMutation();
   const [species, setSpecies] = useState<"전체" | "강아지" | "고양이">("전체");
   const [sido, setSido] = useState<string>("");
   const [sigungu, setSigungu] = useState<string>("");
+
+  // 비로그인 클릭 → 로그인 유도. 로그인 → 낙관적 토글(list/detail 페이지와 동일 패턴).
+  const handleLikeToggle = (e: React.MouseEvent, animal: AnimalPreview) => {
+    e.stopPropagation(); // 카드 클릭(상세 이동)과 분리
+    if (!user) {
+      toast("로그인 후 좋아요할 수 있어요.");
+      navigate("/login");
+      return;
+    }
+    if (likePending && variables?.animalId === animal.animalId) return; // 중복 클릭 방지
+    toggleLike({ animalId: animal.animalId, currentlyLiked: animal.isLiked });
+  };
 
   // 시/도 선택에 따라 군/구 목록 연동 — 시/도 변경 시 군/구는 리셋 (피그마 원본 동작)
   const sigunguList =
@@ -452,15 +474,24 @@ export function AnimalPreviewSection({
                   >
                     {status.label}
                   </span>
-                  {/* ⚠️ [좋아요 담당자] 여기가 좋아요 연결 지점입니다.
-                      onClick에 토글 API 호출을 연결하고(stopPropagation 유지 — 카드 클릭과 분리),
-                      "내가 좋아요한 동물" 여부에 따라 Heart의 fill/color를 #F87171(빨강)로 전환하시면 됩니다.
-                      (피그마 원형: fill={liked ? '#F87171' : 'none'}) 카운트 표기가 필요하면 animal.likeCount 사용 */}
                   <button
-                    onClick={(e) => e.stopPropagation()}
-                    className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/85 transition-all hover:scale-110 hover:bg-white"
+                    onClick={(e) => handleLikeToggle(e, animal)}
+                    disabled={
+                      likePending && variables?.animalId === animal.animalId
+                    }
+                    aria-label={animal.isLiked ? "좋아요 취소" : "좋아요"}
+                    aria-pressed={animal.isLiked}
+                    className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/85 transition-all hover:scale-110 hover:bg-white disabled:opacity-60"
                   >
-                    <Heart size={15} className="text-muted-foreground" />
+                    <Heart
+                      size={15}
+                      className={
+                        animal.isLiked
+                          ? "text-[#F87171]"
+                          : "text-muted-foreground"
+                      }
+                      fill={animal.isLiked ? "#F87171" : "none"}
+                    />
                   </button>
                 </div>
 
