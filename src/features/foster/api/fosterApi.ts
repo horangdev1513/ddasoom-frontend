@@ -3,6 +3,7 @@ import type { ApiResponse, PageResponse } from '@/shared/types/api';
 import type {
   FosterCreatePayload,
   FosterListParams,
+  FosterPendingApplication,
   FosterUpdatePayload,
   FosterUserDetail,
   FosterUserListItem,
@@ -19,6 +20,19 @@ export async function getMyFosters(
   );
 
   return res.data.data as PageResponse<FosterUserListItem>;
+}
+
+export async function getMyPendingFosterApplication(
+  animalId: number,
+): Promise<FosterPendingApplication> {
+  const res = await axiosInstance.get<ApiResponse<FosterPendingApplication>>(
+    '/fosters/my/pending',
+    {
+      params: { animalId },
+    },
+  );
+
+  return res.data.data as FosterPendingApplication;
 }
 
 export async function getMyFosterDetail(fosterId: number): Promise<FosterUserDetail> {

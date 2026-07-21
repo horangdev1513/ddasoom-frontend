@@ -11,8 +11,8 @@ const MENU_ITEMS = [
   { label: 'FAQ', path: '/admin/faqs' },
   { label: 'QnA', path: '/admin/qnas' },
   { label: '유저 관리', path: '/admin/members' },
-  { label: '임시보호 신청 관리', path: '/admin/fosters' },
-  { label: '임시보호 중 관리', path: '/admin/active-fosters' },
+  { label: '임시보호신청관리', path: '/admin/fosters' },
+  { label: '임시보호진행관리', path: '/admin/active-fosters' },
   { label: '신고 관리', path: '/admin/reports', icon: Flag }, 
 
 ] as const;

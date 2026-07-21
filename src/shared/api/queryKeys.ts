@@ -71,6 +71,10 @@ export const queryKeys = {
     details: () => [...queryKeys.foster.all, 'detail'] as const,
     detail: (fosterId: number) =>
       [...queryKeys.foster.details(), fosterId] as const,
+    pendingApplications: () =>
+      [...queryKeys.foster.all, 'pending-application'] as const,
+    pendingApplication: (animalId: number) =>
+      [...queryKeys.foster.pendingApplications(), animalId] as const,
   },
   // features/mypage — 마이페이지 (구지훈)
   mypage: {

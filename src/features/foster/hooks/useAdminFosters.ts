@@ -4,7 +4,7 @@ import type { FosterAdminListParams } from '@/features/foster/types';
 import { queryKeys } from '@/shared/api/queryKeys';
 
 export function useAdminFosters(
-  params: FosterAdminListParams = {},
+  params: FosterAdminListParams,
   enabled = true,
 ) {
   return useQuery({

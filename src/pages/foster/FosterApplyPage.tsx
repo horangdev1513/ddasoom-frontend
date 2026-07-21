@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router-dom';
 import { HandHeart, PawPrint } from 'lucide-react';
 import { FosterApplicationForm } from '@/features/foster/components/FosterApplicationForm';
 import { useAnimalDetailQuery } from '@/features/animals/hooks/useAnimalDetailQuery';
+import { useMyPendingFosterApplication } from '@/features/foster/hooks/useMyPendingFosterApplication';
 import { Button } from '@/shared/components/ui/button';
 
 export function FosterApplyPage() {
@@ -11,9 +12,15 @@ export function FosterApplyPage() {
 
   const {
     data: animal,
-    isLoading,
-    isError,
+    isLoading: isAnimalLoading,
+    isError: isAnimalError,
   } = useAnimalDetailQuery(animalId);
+
+  const {
+    data: pendingApplication,
+    isLoading: isPendingApplicationLoading,
+    isError: isPendingApplicationError,
+  } = useMyPendingFosterApplication(animalId, validAnimalId);
 
   if (!validAnimalId) {
     return (
@@ -31,19 +38,19 @@ export function FosterApplyPage() {
     );
   }
 
-  if (isLoading) {
+  if (isAnimalLoading || isPendingApplicationLoading) {
     return (
       <div className="min-h-[calc(100vh-4rem)] bg-secondary py-10">
         <section className="mx-auto max-w-2xl rounded-2xl border border-border bg-white p-8">
           <p className="text-base text-muted-foreground">
-            동물 정보를 불러오는 중입니다.
+            신청 정보를 확인 중입니다.
           </p>
         </section>
       </div>
     );
   }
 
-  if (isError || !animal) {
+  if (isAnimalError || !animal) {
     return (
       <div className="min-h-[calc(100vh-4rem)] bg-secondary py-10">
         <section className="mx-auto max-w-2xl rounded-2xl border border-border bg-white p-8 text-center">
@@ -55,6 +62,60 @@ export function FosterApplyPage() {
           </p>
           <Button asChild className="mt-6">
             <Link to="/animals">동물 목록으로 돌아가기</Link>
+          </Button>
+        </section>
+      </div>
+    );
+  }
+
+  if (isPendingApplicationError) {
+    return (
+      <div className="min-h-[calc(100vh-4rem)] bg-secondary py-10">
+        <section className="mx-auto max-w-2xl rounded-2xl border border-border bg-white p-8 text-center">
+          <h1 className="text-2xl font-bold text-foreground">
+            신청 상태를 확인할 수 없습니다.
+          </h1>
+          <p className="mt-2 text-base text-muted-foreground">
+            잠시 후 다시 시도해 주세요.
+          </p>
+          <Button asChild className="mt-6">
+            <Link to={`/animals/${animalId}`}>동물 상세로 돌아가기</Link>
+          </Button>
+        </section>
+      </div>
+    );
+  }
+
+  if (pendingApplication?.hasPendingApplication) {
+    return (
+      <div className="min-h-[calc(100vh-4rem)] bg-secondary py-10">
+        <section className="mx-auto max-w-2xl rounded-2xl border border-border bg-white p-8 text-center">
+          <h1 className="text-2xl font-bold text-foreground">
+            이미 검토 중인 임시보호 신청이 있습니다.
+          </h1>
+          <p className="mt-2 text-base text-muted-foreground">
+            신청 내역에서 진행 상황을 확인해 주세요.
+          </p>
+          <Button asChild className="mt-6">
+            <Link to="/mypage/fosters">신청 내역으로 이동</Link>
+          </Button>
+        </section>
+      </div>
+    );
+  }
+
+  if (animal.isFostered) {
+    return (
+      <div className="min-h-[calc(100vh-4rem)] bg-secondary py-10">
+        <section className="mx-auto max-w-2xl rounded-2xl border border-border bg-white p-8 text-center">
+          <h1 className="text-2xl font-bold text-foreground">
+            이미 임시보호 중인 동물입니다.
+          </h1>
+          <p className="mt-2 text-base text-muted-foreground">
+            현재는 새로운 임시보호 신청을 받을 수 없습니다.
+          </p>
+          <Button asChild className="mt-6">
+            <Link to={`/animals/${animalId}`}>동물 상세로 돌아가기</Link>
           </Button>
         </section>
       </div>

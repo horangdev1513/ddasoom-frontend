@@ -5,6 +5,12 @@ export type FosterStatus =
   | 'EXTENDED'
   | 'ENDED';
 
+export type FosterManagementScope = 'APPLICATION' | 'PROGRESS';
+
+export interface FosterPendingApplication {
+  hasPendingApplication: boolean;
+}
+
 export interface FosterUserListItem {
   fosterId: number;
   animalId: number;
@@ -71,6 +77,7 @@ export interface FosterAdminListItem {
 }
 
 export interface FosterAdminListParams {
+  scope: FosterManagementScope;
   status?: FosterStatus;
   activeOnly?: boolean;
   includeDeleted?: boolean;

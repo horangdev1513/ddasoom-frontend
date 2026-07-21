@@ -16,7 +16,7 @@ import { Input } from '@/shared/components/ui/input';
 import { Textarea } from '@/shared/components/ui/textarea';
 
 const statusOptions: Record<FosterStatus, FosterStatus[]> = {
-  PENDING: ['PENDING', 'FOSTERING', 'REJECTED'],
+  PENDING: ['FOSTERING', 'REJECTED'],
   FOSTERING: ['FOSTERING', 'EXTENDED', 'ENDED'],
   EXTENDED: ['EXTENDED', 'ENDED'],
   REJECTED: ['REJECTED'],
@@ -152,6 +152,14 @@ function getServerErrorMessage(error: unknown): string {
     return '선택한 상태에 필요한 일정 정보가 누락되었습니다.';
   }
 
+  if (code === 'FOSTER_017') {
+    return '종료된 임시보호 신청의 일정은 수정할 수 없습니다.';
+  }
+
+  if (code === 'FOSTER_018') {
+    return '종료 처리 시 기존 임시보호 일정은 수정할 수 없습니다.';
+  }
+
   if (code === 'FOSTER_003') {
     return '삭제된 신청은 수정할 수 없습니다.';
   }
@@ -161,8 +169,10 @@ function getServerErrorMessage(error: unknown): string {
 
 export function AdminFosterEditForm({
   foster,
+  getDetailPath,
 }: {
   foster: FosterAdminDetail;
+  getDetailPath: (status: FosterStatus) => string;
 }) {
   const navigate = useNavigate();
   const updateFosterMutation = useUpdateAdminFoster();
@@ -187,13 +197,25 @@ export function AdminFosterEditForm({
   });
 
   const selectedStatus = watch('status');
+  const isEndedFoster = foster.status === 'ENDED';
+
   const showBasicSchedule =
     selectedStatus === 'FOSTERING' ||
     selectedStatus === 'EXTENDED' ||
     selectedStatus === 'ENDED';
+
   const showExtendSchedule =
     selectedStatus === 'EXTENDED' || Boolean(foster.fosterExtendAt);
+
   const showCompleteSchedule = selectedStatus === 'ENDED';
+
+  const scheduleInputProps = isEndedFoster
+    ? { readOnly: true, tabIndex: -1 }
+    : {};
+
+  const scheduleInputClass = isEndedFoster
+    ? 'pointer-events-none bg-muted text-muted-foreground'
+    : 'bg-secondary';
 
   const onSubmit = (values: FosterAdminEditFormValues) => {
     const payload: FosterAdminUpdatePayload = {
@@ -212,7 +234,7 @@ export function AdminFosterEditForm({
       },
       {
         onSuccess: () => {
-          navigate(`/admin/fosters/${foster.fosterId}`, { replace: true });
+          navigate(getDetailPath(values.status), { replace: true });
         },
         onError: (error) => {
           setError('root', {
@@ -242,7 +264,9 @@ export function AdminFosterEditForm({
               type="button"
               variant={selectedStatus === status ? 'default' : 'outline'}
               aria-pressed={selectedStatus === status}
-              onClick={() => setValue('status', status, { shouldValidate: true })}
+              onClick={() =>
+                setValue('status', status, { shouldValidate: true })
+              }
             >
               {statusLabels[status]}
             </Button>
@@ -265,7 +289,9 @@ export function AdminFosterEditForm({
           {...register('answer')}
         />
         {errors.answer && (
-          <p className="mt-1 text-sm text-destructive">{errors.answer.message}</p>
+          <p className="mt-1 text-sm text-destructive">
+            {errors.answer.message}
+          </p>
         )}
       </div>
 
@@ -281,7 +307,8 @@ export function AdminFosterEditForm({
             <Input
               id="foster-admin-start-at"
               type="datetime-local"
-              className="bg-secondary"
+              {...scheduleInputProps}
+              className={scheduleInputClass}
               aria-invalid={Boolean(errors.fosterStartAt)}
               {...register('fosterStartAt')}
             />
@@ -302,7 +329,8 @@ export function AdminFosterEditForm({
             <Input
               id="foster-admin-end-at"
               type="datetime-local"
-              className="bg-secondary"
+              {...scheduleInputProps}
+              className={scheduleInputClass}
               aria-invalid={Boolean(errors.fosterEndAt)}
               {...register('fosterEndAt')}
             />
@@ -326,7 +354,8 @@ export function AdminFosterEditForm({
           <Input
             id="foster-admin-extend-at"
             type="datetime-local"
-            className="bg-secondary"
+            {...scheduleInputProps}
+            className={scheduleInputClass}
             aria-invalid={Boolean(errors.fosterExtendAt)}
             {...register('fosterExtendAt')}
           />
@@ -349,7 +378,8 @@ export function AdminFosterEditForm({
           <Input
             id="foster-admin-complete-at"
             type="datetime-local"
-            className="bg-secondary"
+            {...scheduleInputProps}
+            className={scheduleInputClass}
             aria-invalid={Boolean(errors.fosterCompleteAt)}
             {...register('fosterCompleteAt')}
           />
@@ -366,7 +396,7 @@ export function AdminFosterEditForm({
           type="button"
           variant="outline"
           disabled={updateFosterMutation.isPending}
-          onClick={() => navigate(`/admin/fosters/${foster.fosterId}`)}
+          onClick={() => navigate(getDetailPath(foster.status))}
         >
           취소
         </Button>

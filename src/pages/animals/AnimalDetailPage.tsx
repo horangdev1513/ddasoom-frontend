@@ -12,19 +12,20 @@ import { toast } from "sonner";
 import { useAuthStore } from "@/shared/stores/authStore";
 import { useAnimalDetailQuery } from "@/features/animals/hooks/useAnimalDetailQuery";
 import { useAnimalLikeMutation } from "@/features/animals/hooks/useAnimalLikeMutation";
+import { useMyPendingFosterApplication } from "@/features/foster/hooks/useMyPendingFosterApplication";
 import type { AnimalDetail } from "@/features/animals/types";
-
-// 유기동물 상세 페이지 — 큰 사진 + 상세 정보 + 좋아요 + 임시보호 신청 바로가기.
 
 const KIND_LABEL: Record<AnimalDetail["kind"], string> = {
   D: "강아지",
   C: "고양이",
 };
+
 const GENDER = {
   M: { label: "♂ 수컷", color: "#6B9FD4" },
   F: { label: "♀ 암컷", color: "#E88FA0" },
   Q: { label: "미상", color: "#9C8B75" },
 } as const;
+
 const FALLBACK_IMAGE =
   "https://placehold.co/600x600/FFF3D6/9C8B75?text=%F0%9F%90%BE";
 
@@ -35,6 +36,12 @@ export function AnimalDetailPage() {
   const user = useAuthStore((s) => s.user);
 
   const { data: animal, isLoading, isError } = useAnimalDetailQuery(animalId);
+
+  const {
+    data: pendingApplication,
+    isLoading: isPendingApplicationLoading,
+  } = useMyPendingFosterApplication(animalId, Boolean(user));
+
   const { mutate: toggleLike, isPending: likePending } =
     useAnimalLikeMutation();
 
@@ -45,6 +52,7 @@ export function AnimalDetailPage() {
       </CenterScreen>
     );
   }
+
   if (isError || !animal) {
     return (
       <CenterScreen>
@@ -64,25 +72,48 @@ export function AnimalDetailPage() {
 
   const gender = GENDER[animal.gender];
 
+  const hasPendingApplication =
+    pendingApplication?.hasPendingApplication ?? false;
+
+  const isFosterApplyDisabled =
+    animal.isFostered ||
+    hasPendingApplication ||
+    (Boolean(user) && isPendingApplicationLoading);
+
+  const fosterButtonLabel = isPendingApplicationLoading
+    ? "신청 상태를 확인 중이에요"
+    : hasPendingApplication
+      ? "내 임시보호 신청을 검토 중이에요"
+      : animal.isFostered
+        ? "이미 임시보호 중인 아이예요"
+        : "임시보호 신청하기";
+
   const handleLikeToggle = () => {
     if (!user) {
       toast("로그인 후 좋아요할 수 있어요.");
       navigate("/login");
       return;
     }
-    if (!likePending)
-      toggleLike({ animalId: animal.animalId, currentlyLiked: animal.isLiked });
+
+    if (!likePending) {
+      toggleLike({
+        animalId: animal.animalId,
+        currentlyLiked: animal.isLiked,
+      });
+    }
   };
 
   const handleFosterApply = () => {
-    if (animal.isFostered) return; // 이미 임보중이면 비활성
-    navigate(`/foster/apply/${animal.animalId}`); // 비로그인이면 라우트 가드가 로그인으로 유도
+    if (isFosterApplyDisabled) {
+      return;
+    }
+
+    navigate(`/foster/apply/${animal.animalId}`);
   };
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-secondary py-8">
       <div className="mx-auto max-w-5xl px-6">
-        {/* 뒤로가기 */}
         <button
           onClick={() => navigate("/animals")}
           className="mb-5 inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-ring"
@@ -91,25 +122,26 @@ export function AnimalDetailPage() {
         </button>
 
         <div className="grid gap-8 md:grid-cols-2">
-          {/* ── 사진 ── */}
           <div className="relative overflow-hidden rounded-2xl border border-border bg-white">
             <img
               src={animal.imageUrl ?? FALLBACK_IMAGE}
               alt={animal.nickname}
-              onError={(e) => {
-                e.currentTarget.src = FALLBACK_IMAGE;
+              onError={(event) => {
+                event.currentTarget.onerror = null;
+                event.currentTarget.src = FALLBACK_IMAGE;
               }}
               className="aspect-square w-full object-cover"
             />
             <span
               className="absolute left-4 top-4 rounded-full px-3 py-1 text-sm font-bold text-white"
-              style={{ background: animal.isFostered ? "#9C8B75" : "#F4B942" }}
+              style={{
+                background: animal.isFostered ? "#9C8B75" : "#F4B942",
+              }}
             >
               {animal.isFostered ? "임시보호중" : "임시보호가능"}
             </span>
           </div>
 
-          {/* ── 정보 ── */}
           <div className="flex flex-col">
             <div className="mb-4 flex items-start justify-between">
               <div>
@@ -125,7 +157,7 @@ export function AnimalDetailPage() {
                   {animal.typeName}
                 </p>
               </div>
-              {/* 좋아요 */}
+
               <button
                 onClick={handleLikeToggle}
                 disabled={likePending}
@@ -149,12 +181,10 @@ export function AnimalDetailPage() {
               </button>
             </div>
 
-            {/* 정보 카드 */}
             <div className="mb-5 grid grid-cols-2 gap-3 rounded-2xl border border-border bg-white p-5">
               <InfoItem label="성별">
                 <span style={{ color: gender.color }}>{gender.label}</span>
               </InfoItem>
-              {/* age/weight는 공공API 원본 문자열 그대로 표기 */}
               <InfoItem label="나이">{animal.age}</InfoItem>
               <InfoItem label="몸무게">{animal.weight}</InfoItem>
               <InfoItem label="색상">{animal.color}</InfoItem>
@@ -172,7 +202,6 @@ export function AnimalDetailPage() {
               </InfoItem>
             </div>
 
-            {/* 특이사항 */}
             <div className="mb-6 rounded-2xl border border-border bg-white p-5">
               <p className="mb-1.5 text-sm font-semibold text-[#C4B4A4]">
                 특이사항
@@ -182,20 +211,17 @@ export function AnimalDetailPage() {
               </p>
             </div>
 
-            {/* ── 임시보호 신청 CTA ── */}
             <button
               onClick={handleFosterApply}
-              disabled={animal.isFostered}
+              disabled={isFosterApplyDisabled}
               className={`mt-auto flex w-full items-center justify-center gap-2 rounded-xl py-4 text-base font-bold transition-all ${
-                animal.isFostered
+                isFosterApplyDisabled
                   ? "cursor-not-allowed bg-muted text-muted-foreground"
                   : "bg-ring text-white hover:brightness-105"
               }`}
             >
               <HeartHandshake size={18} />
-              {animal.isFostered
-                ? "이미 임시보호 중인 아이예요"
-                : "임시보호 신청하기"}
+              {fosterButtonLabel}
             </button>
           </div>
         </div>

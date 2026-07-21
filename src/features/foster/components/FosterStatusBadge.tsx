@@ -4,28 +4,32 @@ import type { FosterStatus } from '@/features/foster/types';
 const STATUS_CONFIG: Record<FosterStatus, { label: string; className: string }> = {
   PENDING: {
     label: '신청 대기',
-    className: 'border-transparent bg-secondary text-ring',
+    className: 'border-amber-200 bg-amber-50 text-amber-800',
   },
   REJECTED: {
     label: '신청 거절',
-    className: 'border-transparent bg-destructive text-white',
+    className: 'border-rose-200 bg-rose-50 text-rose-700',
   },
   FOSTERING: {
     label: '임시보호 중',
-    className: 'border-transparent bg-primary text-primary-foreground',
+    className: 'border-emerald-200 bg-emerald-50 text-emerald-700',
   },
   EXTENDED: {
     label: '임시보호 연장',
-    className: 'border-transparent bg-accent text-accent-foreground',
+    className: 'border-sky-200 bg-sky-50 text-sky-700',
   },
   ENDED: {
     label: '임시보호 종료',
-    className: 'border-transparent bg-muted text-muted-foreground',
+    className: 'border-slate-200 bg-slate-100 text-slate-600',
   },
 };
 
 export function FosterStatusBadge({ status }: { status: FosterStatus }) {
   const { label, className } = STATUS_CONFIG[status];
 
-  return <Badge className={className}>{label}</Badge>;
+  return (
+    <Badge className={`border font-medium ${className}`}>
+      {label}
+    </Badge>
+  );
 }

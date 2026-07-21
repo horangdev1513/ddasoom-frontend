@@ -8,7 +8,7 @@ import type {
 } from '@/features/foster/types';
 
 export async function getAdminFosters(
-  params: FosterAdminListParams = {},
+  params: FosterAdminListParams,
 ): Promise<PageResponse<FosterAdminListItem>> {
   const res = await axiosInstance.get<ApiResponse<PageResponse<FosterAdminListItem>>>(
     '/admin/fosters',
