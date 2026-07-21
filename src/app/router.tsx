@@ -157,6 +157,8 @@ export const router = createBrowserRouter([
           { path: 'fosters/:fosterId', element: <AdminFosterDetailPage /> },
           // ===== 게시글 관리 (유창호) =======
 
+          // ===== 유기동물 동기화 (김종식) - 대시보드 우측 상단 버튼으로 이동, 별도 라우트 없음 =======
+
           { path: '*', element: <AdminDashboardPage /> }, // /admin/** (관리 서브페이지 자리)
         ],
       },
