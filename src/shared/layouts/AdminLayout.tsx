@@ -11,24 +11,24 @@ const MENU_ITEMS = [
   { label: 'FAQ', path: '/admin/faqs' },
   { label: 'QnA', path: '/admin/qnas' },
   { label: '유저 관리', path: '/admin/members' },
+  { label: '게시글 관리', path: '/admin/posts' },
   { label: '임시보호 신청 관리', path: '/admin/fosters' },
   { label: '임시보호 중 관리', path: '/admin/active-fosters' },
-  { label: '신고 관리', path: '/admin/reports', icon: Flag }, 
-
+  { label: '신고 관리', path: '/admin/reports', icon: Flag },
 ] as const;
 
 export function AdminLayout() {
   const user = useAuthStore((s) => s.user);
 
   return (
-    <div className="flex min-h-screen">
+    <div className='flex min-h-screen'>
       {/* 사이드바 — 다크 네이비 */}
-      <aside className="flex w-56 flex-col bg-slate-900 text-slate-100">
-        <div className="border-b border-slate-700 px-6 py-5">
-          <span className="text-lg font-semibold">따숨 관리자</span>
+      <aside className='flex w-56 flex-col bg-slate-900 text-slate-100'>
+        <div className='border-b border-slate-700 px-6 py-5'>
+          <span className='text-lg font-semibold'>따숨 관리자</span>
         </div>
 
-        <nav className="flex-1 px-3 py-4">
+        <nav className='flex-1 px-3 py-4'>
           {MENU_ITEMS.map((item) => (
             <NavLink
               key={item.path}
@@ -49,13 +49,13 @@ export function AdminLayout() {
           ))}
         </nav>
 
-        <div className="border-t border-slate-700 px-6 py-4 text-sm text-slate-400">
+        <div className='border-t border-slate-700 px-6 py-4 text-sm text-slate-400'>
           {user?.nickname ?? '관리자'}님
         </div>
       </aside>
 
       {/* 본문 영역 */}
-      <main className="flex-1 bg-slate-50">
+      <main className='flex-1 bg-slate-50'>
         <Outlet />
       </main>
     </div>
