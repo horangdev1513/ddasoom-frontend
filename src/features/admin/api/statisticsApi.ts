@@ -52,12 +52,16 @@ export interface TopFosterAnimal {
 }
 
 // 응답: MemberSignupTrendResponse — 기존 백엔드 API (offset: 0=최근 7일, 1=그 직전 7일…)
+// ⚠️ 백엔드 TrendPoint.date 는 LocalDate → Jackson이 [year, month, day] 배열로 직렬화한다.
+//    (문자열 'yyyy-MM-dd'가 아님 — 프론트에서 배열을 그대로 받아 라벨로 변환)
+export type LocalDateTuple = [number, number, number];
+
 export interface MemberSignupTrend {
   unit: string;
   offset: number;
   windowStart: string;
   windowEnd: string;
-  points: { date: string; count: number }[];
+  points: { date: LocalDateTuple; count: number }[];
 }
 
 // ── API 함수 ────────────────────────────────────────────────────────────
