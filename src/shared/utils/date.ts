@@ -13,3 +13,14 @@ export function formatDateTime(iso: string): string {
   const d = new Date(iso);
   return `${formatDate(iso)} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
+
+/** LocalDate 백엔드 직렬화 배열([2026,7,21]) → "07.21" 축 라벨. null·문자열·배열 모두 안전 처리 */
+export function formatLocalDateShort(date: [number, number, number] | string | null | undefined): string {
+  if (date == null) return '';
+  if (Array.isArray(date)) {
+    const [, m, d] = date;
+    return `${String(m).padStart(2, '0')}.${String(d).padStart(2, '0')}`;
+  }
+  // 문자열 'yyyy-MM-dd' → 'MM.DD'
+  return date.length >= 10 ? date.slice(5).replace('-', '.') : date;
+}
