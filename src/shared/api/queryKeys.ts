@@ -144,6 +144,10 @@ export const queryKeys = {
     }) => [...queryKeys.admin.reports(), 'list', params] as const,
     reportDetail: (id: number) =>
       [...queryKeys.admin.reports(), 'detail', id] as const,
+    // ⭐ 추가 — 회원 상세의 '신고 내역' 섹션(특정 회원이 받은 신고). reports() 하위라
+    // 승인/반려 무효화(reports() 루트)에 자동 포함된다 — 피신고자 강제탈퇴 후 이력이 갱신되도록.
+    reportsByMember: (memberId: number, page: number) =>
+      [...queryKeys.admin.reports(), 'byMember', memberId, page] as const,
 
     // ===== 구지훈 (유저 관리) =======
     members: () => [...queryKeys.admin.all, 'members'] as const,

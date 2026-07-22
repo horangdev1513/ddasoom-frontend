@@ -28,6 +28,16 @@ export function useAdminReport(reportId: number | null) {
   });
 }
 
+// ⭐ 추가 — 특정 회원이 받은 신고 목록(회원 상세 '신고 내역' 섹션).
+// 상세의 누적 카운트는 반려를 제외하지만, 이 목록은 판정 이력 열람이 목적이라 반려도 포함해 내려온다.
+export function useReportsByMember(memberId: number | null, page: number) {
+  return useQuery({
+    queryKey: queryKeys.admin.reportsByMember(memberId ?? 0, page),
+    queryFn: () => getAdminReports({ reportedMemberId: memberId as number, page, size: 10 }),
+    enabled: memberId != null,
+  });
+}
+
 /**
  * 승인/반려 공통 처리.
  * 두 mutation의 차이가 호출 함수·성공 문구·회원 무효화 여부뿐이라 한 곳에 모았다.

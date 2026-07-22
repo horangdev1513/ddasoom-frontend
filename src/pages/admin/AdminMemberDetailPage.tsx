@@ -5,8 +5,16 @@ import {
   useAdminMemberDetail, useAdminMemberLoginLogs, useForceWithdrawMember, useRestoreMember,
   useUpdateMemberStatus,
 } from '@/features/admin/hooks/useMembers';
+// ⭐ 추가 — 이 회원이 받은 신고 내역 섹션용 (조회 훅 + 신고 도메인 라벨/배지 재사용)
+import { useReportsByMember } from '@/features/admin/hooks/useAdminReports';
+import { REPORT_REASON_LABEL, REPORT_TARGET_TYPE_LABEL } from '@/features/report/util';
+import { ReportStatusBadge } from '@/pages/admin/AdminReportListPage';
+import { formatDate } from '@/shared/utils/date';
 import { Button } from '@/shared/components/ui/button';
 import { Badge } from '@/shared/components/ui/badge';
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from '@/shared/components/ui/table';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -23,9 +31,11 @@ export function AdminMemberDetailPage() {
   const navigate = useNavigate();
   const id = memberId ? Number(memberId) : null;
   const [logPage, setLogPage] = useState(0);
+  const [reportPage, setReportPage] = useState(0); // ⭐ 추가 — 신고 내역 섹션 페이지
 
   const { data: member, isLoading, isError } = useAdminMemberDetail(id);
   const { data: logs } = useAdminMemberLoginLogs(id, logPage);
+  const { data: reports } = useReportsByMember(id, reportPage); // ⭐ 추가 — 이 회원이 받은 신고
   const forceWithdraw = useForceWithdrawMember();
   const restore = useRestoreMember();
   const updateStatus = useUpdateMemberStatus();
@@ -210,6 +220,87 @@ export function AdminMemberDetailPage() {
                 <button
                   onClick={() => setLogPage((p) => p + 1)}
                   disabled={!logs.hasNext}
+                  className="flex items-center gap-1 rounded-xl border border-border px-3 py-1.5 text-sm text-muted-foreground disabled:opacity-40 transition-colors hover:bg-secondary"
+                >
+                  다음 <ChevronRight size={15} />
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* ⭐ 추가 — 신고 내역 섹션. 이 회원이 받은 신고를 조회한다(GET /api/admin/reports?reportedMemberId).
+          상세의 누적 카운트는 반려를 제외하지만 이 목록은 판정 이력 열람이 목적이라 반려도 포함 —
+          숫자 차이를 상태 배지로 구분할 수 있게 안내 문구를 둔다. */}
+      <div className="mt-6 rounded-md border p-5">
+        <h2 className="mb-1 text-sm font-semibold text-foreground">신고 내역</h2>
+        <p className="mb-3 text-xs text-muted-foreground">
+          이 회원이 받은 신고입니다. 반려된 신고도 포함되어 누적 카운트와 다를 수 있습니다.
+        </p>
+        {!reports || reports.content.length === 0 ? (
+          <p className="text-sm text-muted-foreground">접수된 신고가 없습니다.</p>
+        ) : (
+          <>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-32">신고일</TableHead>
+                  <TableHead className="w-20">대상 유형</TableHead>
+                  <TableHead>대상 제목</TableHead>
+                  <TableHead className="w-32">신고 사유</TableHead>
+                  <TableHead className="w-24">상태</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {reports.content.map((report) => (
+                  <TableRow
+                    key={report.reportId}
+                    className="cursor-pointer"
+                    onClick={() => navigate(`/admin/reports/${report.reportId}`)}
+                  >
+                    <TableCell className="text-muted-foreground">
+                      {formatDate(report.createdAt)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">
+                        {REPORT_TARGET_TYPE_LABEL[report.targetType]}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {report.targetTitle ? (
+                        <span className="block max-w-[240px] truncate" title={report.targetTitle}>
+                          {report.targetTitle}
+                        </span>
+                      ) : (
+                        `#${report.targetId}`
+                      )}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {REPORT_REASON_LABEL[report.reason]}
+                    </TableCell>
+                    <TableCell>
+                      <ReportStatusBadge status={report.status} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {reports.totalPages > 1 && (
+              <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
+                <button
+                  onClick={() => setReportPage((p) => p - 1)}
+                  disabled={reportPage === 0}
+                  className="flex items-center gap-1 rounded-xl border border-border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-secondary disabled:opacity-40"
+                >
+                  <ChevronLeft size={15} /> 이전
+                </button>
+                <span className="text-sm text-muted-foreground">
+                  {reportPage + 1} / {reports.totalPages} 페이지 (총 {reports.totalElements}건)
+                </span>
+                <button
+                  onClick={() => setReportPage((p) => p + 1)}
+                  disabled={!reports.hasNext}
                   className="flex items-center gap-1 rounded-xl border border-border px-3 py-1.5 text-sm text-muted-foreground disabled:opacity-40 transition-colors hover:bg-secondary"
                 >
                   다음 <ChevronRight size={15} />

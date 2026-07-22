@@ -133,9 +133,12 @@ export function AdminReportListPage() {
           <TableHeader>
             <TableRow>
               <TableHead className="w-16">번호</TableHead>
-              <TableHead className="w-40">대상</TableHead>
+              {/* ⭐ 변경 — 대상 컬럼에 제목을 함께 노출하므로 폭을 넓힘 */}
+              <TableHead className="w-56">대상</TableHead>
               <TableHead>사유</TableHead>
               <TableHead className="w-32">신고자</TableHead>
+              {/* ⭐ 추가 — 피신고자 컬럼 */}
+              <TableHead className="w-32">피신고자</TableHead>
               <TableHead className="w-24">상태</TableHead>
               <TableHead className="w-32">신고일</TableHead>
             </TableRow>
@@ -143,7 +146,8 @@ export function AdminReportListPage() {
           <TableBody>
             {reports.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                {/* ⭐ 변경 — 피신고자 컬럼 추가로 colSpan 6→7 */}
+                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                   조건에 맞는 신고가 없습니다.
                 </TableCell>
               </TableRow>
@@ -160,7 +164,17 @@ export function AdminReportListPage() {
                       <Badge variant="outline">
                         {REPORT_TARGET_TYPE_LABEL[report.targetType]}
                       </Badge>
-                      <span className="text-muted-foreground">#{report.targetId}</span>
+                      {/* ⭐ 변경 — targetId 숫자 대신 제목 노출(길면 1줄 말줄임). 없으면 기존처럼 #id */}
+                      {report.targetTitle ? (
+                        <span
+                          className="max-w-[240px] truncate text-muted-foreground"
+                          title={report.targetTitle}
+                        >
+                          {report.targetTitle}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">#{report.targetId}</span>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell className="font-medium">
@@ -168,6 +182,10 @@ export function AdminReportListPage() {
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {report.reporterNickname}
+                  </TableCell>
+                  {/* ⭐ 추가 — 피신고자(없으면 -) */}
+                  <TableCell className="text-muted-foreground">
+                    {report.reportedNickname ?? '-'}
                   </TableCell>
                   <TableCell>
                     <ReportStatusBadge status={report.status} />

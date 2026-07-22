@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom'; // ⭐ 변경 — 작성자 회원 상세 링크용 Link 추가
 
 import { formatDateTime } from '@/shared/utils/date';
 import { SafeHtmlViewer } from '@/shared/components/editor/SafeHtmlViewer';
@@ -134,7 +134,13 @@ export function AdminPostDetailPage() {
         <div>
           <span className='text-sm text-muted-foreground'>작성자</span>
           <p className='font-medium'>
-            {post.author.nickname}
+            {/* ⭐ 변경 — 작성자 닉네임을 관리자 회원 상세 링크로 감쌈(같은 탭, 원글 컬럼과 동일 스타일) */}
+            <Link
+              to={`/admin/members/${post.author.memberId}`}
+              className='text-primary underline-offset-2 hover:underline'
+            >
+              {post.author.nickname}
+            </Link>
             <span className='ml-1 text-sm text-muted-foreground'>
               #{post.author.memberId}
             </span>
@@ -191,7 +197,15 @@ export function AdminPostDetailPage() {
                 const commentDeleted = comment.deletedAt != null;
                 return (
                   <TableRow key={comment.commentId}>
-                    <TableCell>{comment.author.nickname}</TableCell>
+                    {/* ⭐ 변경 — 댓글 작성자도 관리자 회원 상세 링크로(같은 탭). 행 onClick 없어 전파 차단 불필요 */}
+                    <TableCell>
+                      <Link
+                        to={`/admin/members/${comment.author.memberId}`}
+                        className='text-primary underline-offset-2 hover:underline'
+                      >
+                        {comment.author.nickname}
+                      </Link>
+                    </TableCell>
                     <TableCell
                       className={
                         commentDeleted

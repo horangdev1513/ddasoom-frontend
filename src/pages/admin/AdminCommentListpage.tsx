@@ -148,7 +148,15 @@ const columns: ColumnDef<AdminGlobalCommentItem>[] = [
     // author는 객체라 컬럼 id를 별도로 둔다 (정렬은 서버가 member.nickname으로 처리)
     id: 'author',
     header: ({ column }) => <SortableHeader column={column} label='작성자' />,
-    cell: ({ row }) => <span>{row.original.author.nickname}</span>,
+    // ⭐ 변경 — 작성자 닉네임을 관리자 회원 상세 링크로(같은 탭). 원글 컬럼과 동일 링크 스타일 재사용
+    cell: ({ row }) => (
+      <Link
+        to={`/admin/members/${row.original.author.memberId}`}
+        className='text-primary underline-offset-2 hover:underline'
+      >
+        {row.original.author.nickname}
+      </Link>
+    ),
   },
   {
     // 원글 — 클릭 시 게시글 상세로 이동 (행 전체 클릭 대신 링크로 한정해 삭제 버튼과 충돌 방지)
