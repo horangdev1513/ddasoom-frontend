@@ -1,35 +1,32 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   type ColumnDef,
-  type ColumnFiltersState,
   type SortingState,
-  type Row,
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { SortableHeader } from '@/features/admin/components/SortableHeader';
-import { ArrowUpDown } from 'lucide-react';
-import { useAdminMembers } from '@/features/admin/hooks/useMembers';
-import type { AdminMemberListItem } from '@/features/admin/api/adminMemberApi';
-import type { Role } from '@/shared/types/role';
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/shared/components/ui/table';
 import { Button } from '@/shared/components/ui/button';
-import { Badge } from '@/shared/components/ui/badge';
 import { Input } from '@/shared/components/ui/input';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/shared/components/ui/select';
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from '@/shared/components/ui/table';
+import { SortableHeader } from '@/features/admin/components/SortableHeader';
+import { useAdminMembers } from '@/features/admin/hooks/useMembers';
+import type {
+  AdminMemberListItem,
+  AdminMemberStatusFilter,
+} from '@/features/admin/api/adminMemberApi';
+import type { Role } from '@/shared/types/role';
 
-// 데모 규모(수십 명)라 전체 1회 로드 후 검색/정렬/페이징을 전부 클라이언트에서 처리.
-// → 검색 타이핑 중 서버 요청 0회. 회원 수가 커지면 manualPagination으로 서버 모드 전환 검토.
-const FETCH_ALL_SIZE = 500;
+// 관리자 유저 관리 — 검색·필터·정렬·페이징을 모두 서버에서 처리한다(서버 페이징).
+// 전체를 받아 브라우저에서 거르던 방식은 데이터가 늘면 응답 지연·메모리 문제로 반드시 한계에 부딪힌다.
+
+const PAGE_SIZE = 20;
 
 const ROLE_OPTIONS: { value: Role | 'ALL'; label: string }[] = [
   { value: 'ALL', label: '전체 권한' },
@@ -38,9 +35,7 @@ const ROLE_OPTIONS: { value: Role | 'ALL'; label: string }[] = [
   { value: 'ADMIN', label: 'ADMIN' },
 ];
 
-// 상태 필터 — 회원 상태는 파생값(탈퇴=deletedAt, 숨김=status HIDDEN, 그 외 활성).
-// status 컬럼 accessorFn과 동일 기준: 활성=0 / 숨김=1 / 탈퇴=2
-type StatusFilter = 'ALL' | 'ACTIVE' | 'HIDDEN' | 'DELETED';
+type StatusFilter = 'ALL' | AdminMemberStatusFilter;
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: 'ALL', label: '전체 상태' },
   { value: 'ACTIVE', label: '활성' },
@@ -48,59 +43,44 @@ const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: 'DELETED', label: '탈퇴' },
 ];
 
-// ⚠️ 컴포넌트 바깥(모듈 스코프)에 둔다 — 렌더링마다 재생성되는 함수를 state로 넘기면
-// TanStack Table이 "필터 함수가 바뀌었다"고 오판해 페이지 리셋 → 리렌더 → 재생성 무한루프에 빠진다.
-// globalFilterFn의 정식 시그니처는 (Row, columnId, filterValue) — 첫 인자는 Row 객체다.
-function globalFilterFn(row: Row<AdminMemberListItem>, _columnId: string, filterValue: string) {
-  const q = String(filterValue ?? '').toLowerCase().trim();
-  if (q === '') return true;   // 검색어 비면 전체 통과
-  const email = row.original.email?.toLowerCase() ?? '';
-  const nickname = row.original.nickname?.toLowerCase() ?? '';
-  return email.includes(q) || nickname.includes(q);
-}
+// 화면 컬럼 id → 백엔드 정렬 프로퍼티. 백엔드 화이트리스트와 반드시 일치해야 한다.
+// (허용 밖 값을 보내면 에러가 아니라 기본 정렬로 조용히 대체되므로, 어긋나면 원인 파악이 어렵다)
+const SORT_PROPERTY: Record<string, string> = {
+  memberId: 'id',
+  email: 'email',
+  nickname: 'nickname',
+  role: 'role',
+  status: 'status',
+  createdAt: 'createdAt',
+};
 
-// 컬럼 정의도 모듈 스코프 — 매 렌더 재생성 방지 (데이터 자체가 없으므로 컴포넌트 상태 의존 없음)
 const columns: ColumnDef<AdminMemberListItem>[] = [
-   {
+  {
     accessorKey: 'memberId',
     header: ({ column }) => <SortableHeader column={column} label="번호" />,
-    cell: ({ row }) => <span>{row.original.memberId}</span>,
   },
   {
     accessorKey: 'email',
     header: ({ column }) => <SortableHeader column={column} label="이메일" />,
-    cell: ({ row }) => <span className="font-medium">{row.original.email}</span>,
   },
   {
     accessorKey: 'nickname',
     header: ({ column }) => <SortableHeader column={column} label="닉네임" />,
-    cell: ({ row }) => <span>{row.original.nickname}</span>,
+    cell: ({ row }) => row.original.nickname ?? <span className="text-muted-foreground">—</span>,
   },
   {
     accessorKey: 'role',
     header: ({ column }) => <SortableHeader column={column} label="권한" />,
-    cell: ({ row }) => <Badge variant="outline">{row.original.role}</Badge>,
-    filterFn: 'equals', // Role 셀렉트 필터용 — 정확 일치
   },
   {
-    // deletedAt/status를 상태 문자열로 변환 — 정렬·필터 공용 파생 값
+    // 상태는 파생값(탈퇴 > 숨김 > 활성) — 정렬은 백엔드가 CASE 식으로 처리한다
     id: 'status',
-    // 활성='ACTIVE' / 숨김='HIDDEN' / 탈퇴='DELETED' — 상태 필터의 equals 매칭 대상
-    accessorFn: (row) => (row.deletedAt ? 'DELETED' : row.status === 'HIDDEN' ? 'HIDDEN' : 'ACTIVE'),
-    filterFn: 'equals', // 상태 셀렉트 필터용 — 정확 일치
-    // 정렬 순서 고정: 활성 → 숨김 → 탈퇴 (문제 상태가 아래로 모이도록)
-    sortingFn: (a, b) => {
-      const order: Record<string, number> = { ACTIVE: 0, HIDDEN: 1, DELETED: 2 };
-      return order[a.getValue('status') as string] - order[b.getValue('status') as string];
-    },
     header: ({ column }) => <SortableHeader column={column} label="상태" />,
-    cell: ({ row }) => (
-      row.original.deletedAt
-        ? <Badge variant="destructive">탈퇴</Badge>
-        : row.original.status === 'HIDDEN'
-          ? <Badge variant="outline">숨김</Badge>
-          : <Badge variant="secondary">활성</Badge>
-    ),
+    cell: ({ row }) => {
+      if (row.original.deletedAt) return <span className="text-destructive">탈퇴</span>;
+      if (row.original.status === 'HIDDEN') return <span className="text-amber-600">숨김</span>;
+      return <span className="text-muted-foreground">활성</span>;
+    },
   },
   {
     accessorKey: 'createdAt',
@@ -113,51 +93,77 @@ const columns: ColumnDef<AdminMemberListItem>[] = [
 
 export function AdminMemberListPage() {
   const navigate = useNavigate();
+
+  // ── 서버 요청 파라미터가 되는 상태들 ──
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [globalFilter, setGlobalFilter] = useState('');
+  const [keywordInput, setKeywordInput] = useState('');   // 입력 즉시 반영(화면용)
+  const [keyword, setKeyword] = useState('');             // 디바운스 후 반영(요청용)
   const [role, setRole] = useState<Role | 'ALL'>('ALL');
   const [status, setStatus] = useState<StatusFilter>('ALL');
+  const [page, setPage] = useState(0);
 
-  // 전체 1회 로드 — 검색어는 쿼리 조건이 아니므로 타이핑해도 재조회 없음
-  const { data, isLoading, isError } = useAdminMembers({ page: 0, size: FETCH_ALL_SIZE });
+  // 타이핑 한 글자마다 요청이 나가지 않도록 300ms 디바운스.
+  // 입력값(keywordInput)과 요청값(keyword)을 분리해 입력 반응성은 유지한다.
+  useEffect(() => {
+    const timer = setTimeout(() => setKeyword(keywordInput), 300);
+    return () => clearTimeout(timer);
+  }, [keywordInput]);
+
+  // 검색·필터가 바뀌면 첫 페이지로 되돌린다.
+  // (3페이지에서 검색했는데 결과가 1페이지뿐이면 빈 화면이 뜨는 문제 방지)
+  useEffect(() => {
+    setPage(0);
+  }, [keyword, role, status]);
+
+  // TanStack의 SortingState → Spring 정렬 표기("프로퍼티,방향")
+  const sortParam = useMemo(() => {
+    if (sorting.length === 0) return undefined;
+    const { id, desc } = sorting[0];
+    const property = SORT_PROPERTY[id];
+    return property ? `${property},${desc ? 'desc' : 'asc'}` : undefined;
+  }, [sorting]);
+
+  const { data, isLoading, isError } = useAdminMembers({
+    keyword: keyword || undefined,
+    role: role === 'ALL' ? undefined : role,
+    status: status === 'ALL' ? undefined : status,
+    sort: sortParam,
+    page,
+    size: PAGE_SIZE,
+  });
+
   const members = useMemo(() => data?.content ?? [], [data]);
-
-  // role/status가 실제로 바뀔 때만 새 배열을 만든다 — 참조 안정성이 무한루프 방지의 핵심
-  const columnFilters: ColumnFiltersState = useMemo(() => {
-    const filters: ColumnFiltersState = [];
-    if (role !== 'ALL') filters.push({ id: 'role', value: role });
-    if (status !== 'ALL') filters.push({ id: 'status', value: status });
-    return filters;
-  }, [role, status]);
+  const totalPages = data?.totalPages ?? 0;
 
   const table = useReactTable({
     data: members,
     columns,
-    state: { sorting, globalFilter, columnFilters },
+    state: { sorting },
     onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn,
-    // 커스텀 globalFilterFn을 쓸 때 컬럼별 필터 가능 판정이 꺼지는 경우가 있어 명시적으로 true 고정
-    getColumnCanGlobalFilter: () => true,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    initialState: { pagination: { pageSize: 10 } },
+    // 검색·정렬·페이징을 서버가 처리하므로 클라이언트 행 모델을 쓰지 않는다.
+    // manual 플래그를 켜지 않으면 TanStack이 "이미 걸러진 한 페이지"를 다시 자르려 든다.
+    manualSorting: true,
+    manualFiltering: true,
+    manualPagination: true,
+    pageCount: totalPages,
   });
 
   return (
     <div className="p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-semibold">유저 관리</h1>
+        {data && (
+          <span className="text-sm text-muted-foreground">전체 {data.totalElements}명</span>
+        )}
       </div>
 
-      {/* 검색 + Role 필터 — 전부 메모리 필터링, 서버 요청 없음 */}
+      {/* 검색 + 필터 — 전부 서버 요청 파라미터로 전달된다 */}
       <div className="mb-4 flex gap-2">
         <Input
           placeholder="이메일 또는 닉네임 검색"
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
+          value={keywordInput}
+          onChange={(e) => setKeywordInput(e.target.value)}
           className="max-w-xs"
         />
         <Select value={role} onValueChange={(v) => setRole(v as Role | 'ALL')}>
@@ -208,7 +214,7 @@ export function AdminMemberListPage() {
                   목록을 불러오지 못했습니다.
                 </TableCell>
               </TableRow>
-            ) : table.getRowModel().rows.length === 0 ? (
+            ) : members.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
                   조건에 맞는 회원이 없습니다.
@@ -233,24 +239,24 @@ export function AdminMemberListPage() {
         </Table>
       </div>
 
-      {/* 페이지네이션 */}
+      {/* 페이지네이션 — 서버 페이징이라 table의 페이지 API 대신 page 상태를 직접 다룬다 */}
       <div className="mt-4 flex items-center justify-center gap-2">
         <Button
           variant="outline"
           size="sm"
-          disabled={!table.getCanPreviousPage()}
-          onClick={() => table.previousPage()}
+          disabled={page === 0}
+          onClick={() => setPage((p) => Math.max(0, p - 1))}
         >
           이전
         </Button>
         <span className="text-sm text-muted-foreground">
-          {table.getState().pagination.pageIndex + 1} / {Math.max(1, table.getPageCount())}
+          {page + 1} / {Math.max(1, totalPages)}
         </span>
         <Button
           variant="outline"
           size="sm"
-          disabled={!table.getCanNextPage()}
-          onClick={() => table.nextPage()}
+          disabled={page + 1 >= totalPages}
+          onClick={() => setPage((p) => p + 1)}
         >
           다음
         </Button>
