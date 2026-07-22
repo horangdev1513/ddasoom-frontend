@@ -117,7 +117,10 @@ export const router = createBrowserRouter([
         ],
       },
       { path: '*', element: <NotFoundPage /> },
-      { path: 'forbidden', element: <ForbiddenPage /> }, // 403 리다이렉트
+      { path: 'forbidden', element: <ForbiddenPage /> }, // 403 리다이렉트 (인터셉터가 강제 이동)
+      // ⚠️ catch-all은 항상 맨 마지막 — 위 정적 경로들보다 뒤에 와야 한다.
+      //    (v7 라우트 랭킹 덕에 순서가 어긋나도 당장은 동작하지만, 그 우연에 기대지 않는다)
+      { path: '*', element: <NotFoundPage /> },
     ],
   },
   // 관리자 로그인은 공개(가드/AdminLayout 밖)
