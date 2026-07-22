@@ -42,12 +42,18 @@ export interface AdminLoginLogItem {
   loginAt: string;
 }
 
-// 목록 조회 쿼리 파라미터
+/** 상태 필터 — 백엔드가 deletedAt/status 조합으로 판정 (탈퇴가 status보다 우선) */
+export type AdminMemberStatusFilter = 'ACTIVE' | 'HIDDEN' | 'DELETED';
+
+// 목록 조회 쿼리 파라미터 — 검색·필터·정렬·페이징 전부 서버 처리
 export interface AdminMemberSearchParams {
   keyword?: string; // 이메일/닉네임 부분일치
   role?: Role;
+  status?: AdminMemberStatusFilter;
   page?: number; // 0부터, 기본 0
-  size?: number; // 기본 10
+  size?: number; // 기본 20
+  /** Spring 정렬 표기 "프로퍼티,방향" (예: 'nickname,asc'). 허용: id/email/nickname/role/status/createdAt */
+  sort?: string;
 }
 
 // ── API 함수 ────────────────────────────────────────────────────────────
@@ -58,7 +64,7 @@ export interface AdminMemberSearchParams {
  */
 export async function getAdminMembers(params: AdminMemberSearchParams = {}): Promise<PageResponse<AdminMemberListItem>> {
   const res = await axiosInstance.get<ApiResponse<PageResponse<AdminMemberListItem>>>('/admin/members', {
-    params: { page: 0, size: 10, ...params },
+    params: { page: 0, size: 20, ...params },
   });
   return res.data.data as PageResponse<AdminMemberListItem>;
 }
