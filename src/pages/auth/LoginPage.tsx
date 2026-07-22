@@ -48,8 +48,8 @@ export function LoginPage() {
       setAuth(result.accessToken, toAuthUser(result));
       console.log(result.accessToken);
       toast.success(`${result.nickname ?? '회원'}님, 환영합니다!`);
-      // GUEST(소셜 가입 미완료)가 일반 로그인할 일은 없지만(password null) 방어적으로 홈으로 통일
-      navigate('/');
+      // ADMIN은 관리자 영역으로, 그 외(GUEST 포함)는 홈으로 통일
+      navigate(result.role === 'ADMIN' ? '/admin' : '/');
     } catch (error) {
       // 백엔드 로그인 응답(C안):
       //  - AUTH_101(401): 계정없음/비번틀림/소셜전용 — 사유 미구분 (열거 공격 방지)

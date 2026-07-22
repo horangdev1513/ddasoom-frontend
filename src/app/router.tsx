@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import { UserLayout } from '@/shared/layouts/UserLayout';
 import { AdminLayout } from '@/shared/layouts/AdminLayout';
@@ -24,7 +24,6 @@ import { LikedAnimalsTab } from '@/pages/mypage/LikedAnimalsTab';
 import { FosterHistoryTab } from '@/pages/mypage/FosterHistoryTab';
 import { MyPostsTab } from '@/pages/mypage/MyPostsTab';
 import { MyCommentsTab } from '@/pages/mypage/MyCommentsTab';
-import { AdminLoginPage } from '@/pages/admin/AdminLoginPage';
 import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage';
 import { AdminNoticeListPage } from '@/pages/admin/AdminNoticeListPage';
 import { AdminNoticeFormPage } from '@/pages/admin/AdminNoticeFormPage';
@@ -120,8 +119,8 @@ export const router = createBrowserRouter([
       { path: 'forbidden', element: <ForbiddenPage /> }, // 403 리다이렉트
     ],
   },
-  // 관리자 로그인은 공개(가드/AdminLayout 밖)
-  { path: '/admin/login', element: <AdminLoginPage /> },
+  // 로그인 경로는 /login으로 통일 — 과거 /admin/login 접근은 /login으로 리다이렉트
+  { path: '/admin/login', element: <Navigate to="/login" replace /> },
   {
     // 관리자 영역: ADMIN 가드 → AdminLayout
     path: '/admin',
