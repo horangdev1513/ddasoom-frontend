@@ -8,6 +8,7 @@ import {
   getAdminComments,
   forceDeletePost,
   forceDeleteComment,
+  AdminCommentSearchParams,
   type AdminPostSearchParams,
 } from '@/features/admin/api/adminBoardApi';
 
@@ -73,10 +74,10 @@ export function useForceDeleteComment(postId: number) {
 /**
  * 전체 댓글 목록 — 전체 1회 로드 후 검색/필터/정렬/페이징은 페이지에서 클라이언트 처리(AdminPosts와 동일).
  */
-export function useAdminComments(page = 0, size = 500) {
+export function useAdminComments(params: AdminCommentSearchParams = {}) {
   return useQuery({
-    queryKey: queryKeys.admin.commentList({ page, size }),
-    queryFn: () => getAdminComments(page, size),
+    queryKey: queryKeys.admin.commentList(params),
+    queryFn: () => getAdminComments(params),
   });
 }
 

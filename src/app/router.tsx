@@ -57,7 +57,7 @@ import { AdminFosterProgressEditPage } from '@/pages/admin/AdminFosterProgressEd
 import { PostWritePage } from '@/pages/board/PostWritePage';
 import { AdminPostListPage } from '@/pages/admin/AdminPostListPage';
 import { AdminPostDetailPage } from '@/pages/admin/AdminPostDetailPage';
-import { AdminCommentListPage } from '@/pages/admin/AdminCommentListpage';
+import { AdminCommentListPage } from '@/pages/admin/AdminCommentListPage';
 
 // 전체 라우트 정의(단일 파일에서 관리). 역할별 라우트를 한곳에 모아 등록한다.
 // 현재는 경로 등록 + placeholder 페이지 연결까지만. 각 페이지 실제 구현은 도메인 담당자 몫.

@@ -1,6 +1,6 @@
+import type { Author, PostImage } from '@/features/board/types';
 import { axiosInstance } from '@/shared/api/axiosInstance';
 import type { ApiResponse, PageResponse } from '@/shared/types/api';
-import type { Author, PostImage } from '@/features/board/types';
 
 // features/admin 도메인 API 모듈 — 관리자 전용 게시글/댓글 관리.
 // 백엔드: board/controller/AdminBoardController.java (/api/admin/posts, hasRole(ADMIN))
@@ -74,9 +74,11 @@ export interface AdminGlobalCommentItem {
 // 목록 조회 쿼리 파라미터
 export interface AdminPostSearchParams {
   boardType?: string; // 선택 필터 (미전달 = 전 보드)
-  keyword?: string; // 제목 부분일치
+  keyword?: string; // 제목·작성자 닉네임 부분일치
   page?: number; // 0부터, 기본 0
-  size?: number; // 기본 10
+  size?: number; // 기본 20
+  /** Spring 정렬 표기 "프로퍼티,방향" (예: 'viewCount,desc') */
+  sort?: string;
 }
 
 // ── API 함수 ────────────────────────────────────────────────────────────
@@ -91,7 +93,7 @@ export async function getAdminPosts(
   const res = await axiosInstance.get<
     ApiResponse<PageResponse<AdminPostListItem>>
   >('/admin/posts', {
-    params: { page: 0, size: 10, ...params },
+    params: { page: 0, size: 20, ...params },
   });
   return res.data.data as PageResponse<AdminPostListItem>;
 }
@@ -124,18 +126,27 @@ export async function getAdminPostComments(
   return res.data.data as PageResponse<AdminCommentItem>;
 }
 
+/** 전체 댓글 목록 조회 파라미터 — 검색·필터·정렬·페이징 전부 서버 처리 */
+export interface AdminCommentSearchParams {
+  boardType?: string; // 선택 필터 (미전달 = 전 게시판)
+  keyword?: string; // 내용·작성자 닉네임·원글 제목 부분일치
+  page?: number; // 0부터, 기본 0
+  size?: number; // 기본 20
+  /** Spring 정렬 표기 "프로퍼티,방향" (예: 'createdAt,desc') */
+  sort?: string;
+}
+
 /**
  * 전체 댓글 목록 — 백엔드: GET /api/admin/comments
- * 특정 게시글이 아닌 사이트 전체 댓글(삭제 포함, 최신순). 원글 컨텍스트 포함.
- * 검색/게시판 필터/정렬은 프론트에서 처리하므로 전체 1회 로드(size 크게) 후 클라이언트 필터링.
+ * 특정 게시글이 아닌 사이트 전체 댓글(삭제 포함). 원글 컨텍스트 포함.
+ * 검색·게시판 필터·정렬·페이징을 모두 서버가 처리한다.
  */
 export async function getAdminComments(
-  page = 0,
-  size = 500,
+  params: AdminCommentSearchParams = {},
 ): Promise<PageResponse<AdminGlobalCommentItem>> {
-  const res = await axiosInstance.get<
-    ApiResponse<PageResponse<AdminGlobalCommentItem>>
-  >('/admin/comments', { params: { page, size } });
+  const res = await axiosInstance.get<ApiResponse<PageResponse<AdminGlobalCommentItem>>>('/admin/comments', {
+    params: { page: 0, size: 20, ...params },
+  });
   return res.data.data as PageResponse<AdminGlobalCommentItem>;
 }
 
