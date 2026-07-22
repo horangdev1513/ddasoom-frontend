@@ -11,12 +11,9 @@ import { useAuthStore } from '@/shared/stores/authStore';
 //   실패: ?error=AUTH_1xx 쿼리로 도착 → 코드별 안내 후 로그인 페이지로
 // 흐름 상세: docs/SECURITY-FLOW.md 2번 [SNS 로그인]
 
-// 백엔드 FailureHandler가 보내는 에러코드 → 사용자 안내 문구
-const ERROR_MESSAGES: Record<string, string> = {
-  AUTH_106: '이미 해당 이메일로 가입된 계정이 있어요. 기존 계정으로 로그인해 주세요.',
-  AUTH_107: '소셜 계정의 이메일 제공에 동의해 주세요.',
-};
-const DEFAULT_ERROR = '소셜 로그인에 실패했습니다. 다시 시도해 주세요.'; // AUTH_102(동의 취소 등) 포함
+// ⚠️ 에러 문구 매핑은 이 페이지가 하지 않는다 — 모든 실패를 /login?error=코드 로 넘겨
+//    LoginPage의 LOGIN_ERROR_MESSAGES가 배너로 안내한다(문구 관리처 단일화).
+//    이 페이지에 문구 상수를 두면 실제로 쓰이지 않는 죽은 코드가 된다.
 
 export function OAuthCallbackPage() {
   const navigate = useNavigate();
@@ -34,7 +31,7 @@ export function OAuthCallbackPage() {
     // ── 실패 경로: FailureHandler가 error 쿼리를 실어 보냄 ──
     const errorCode = searchParams.get('error');
     if (errorCode) {
-      // 차단성 에러는 토스트(전환 중 유실 위험) 대신 로그인 페이지 배너로 — state로 문구 전달
+      // 차단성 에러는 토스트(전환 중 유실 위험) 대신 로그인 페이지 배너로 — 쿼리로 코드만 전달
       navigate(`/login?error=${errorCode}`, { replace: true });
       return;
     }
@@ -54,7 +51,9 @@ export function OAuthCallbackPage() {
           navigate('/', { replace: true });
         }
       } catch {
-        navigate('/login', { replace: true, state: { errorMessage: DEFAULT_ERROR } });
+        // LoginPage는 state가 아니라 쿼리(?error=)만 읽는다 — state로 넘기면 문구가 조용히 유실된다.
+        // 매핑에 없는 코드라 LoginPage의 기본 문구가 표시된다.
+        navigate('/login?error=OAUTH_FAILED', { replace: true });
       }
     })();
   }, [navigate, searchParams, setAuth]);
